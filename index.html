@@ -54,16 +54,16 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </div>
 <div id="game" class="scr">
   <canvas id="cv"></canvas>
-  <div id="hud"><div class="ib" id="bk">☰</div><div id="lv"></div><div id="bar"><div id="fill"></div></div><div class="ib" id="gm">♪</div><div class="ib" id="rs">↻</div></div>
+  <div id="hud"><div class="ib" id="bk">☰</div><div id="lv"></div><div id="bar"><div id="fill"></div></div><div class="ib" id="lb" title="Hiện điểm số">#</div><div class="ib" id="gm">♪</div><div class="ib" id="rs">↻</div></div>
   <div id="hint">Chạm giữ và kéo để di chuyển hố đen</div>
   <div id="win"><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
 const MAXL=10000;
-let done=0,musicOn=true;
-try{done=+localStorage.getItem('bh_done')||0;musicOn=localStorage.getItem('bh_music')!=='0'}catch(e){}
-const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_music',musicOn?1:0)}catch(e){}};
+let done=0,musicOn=true,showLb=true;
+try{done=+localStorage.getItem('bh_done')||0;musicOn=localStorage.getItem('bh_music')!=='0';showLb=localStorage.getItem('bh_lb')!=='0'}catch(e){}
+const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_music',musicOn?1:0);localStorage.setItem('bh_lb',showLb?1:0)}catch(e){}};
 
 /* ---------- icon PNG cho iOS ---------- */
 (function(){const s=180,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d');
@@ -172,6 +172,7 @@ function play(n){
   running=true;last=performance.now();requestAnimationFrame(loop);music();
 }
 function toMenu(){running=false;$('game').classList.remove('on');$('menu').classList.add('on');buildMap()}
+$('lb').classList.toggle('off',!showLb);$('lb').onclick=()=>{showLb=!showLb;save();$('lb').classList.toggle('off',!showLb)};
 $('bk').onclick=toMenu;$('wm').onclick=toMenu;$('rs').onclick=()=>play(lvl);$('rp').onclick=()=>play(lvl);
 $('nx').onclick=()=>play(Math.min(lvl+1,MAXL));
 
@@ -366,6 +367,7 @@ function drawObj(o,s){
   if(B.deco!=='s'){ctx.fillStyle='rgba(0,0,0,.28)';E(2,3,o.w*1.05,o.h*.9);ctx.fill()}
   k(o,o.w,o.h,o.hz,o.c,o.d,o.vx<0?-1:1);ctx.restore();
 }
+const holeSc=R=>Math.round(Math.pow(Math.max(0,(R-16)/3.4),2));
 function drawBot(b){
   const sm=b.f>=0?1-b.f:1,R=b.R*sm,hx=b.x,hy=b.y;if(R<1)return;
   const col=b.R>=hole.R*1.12?'#ff4d5e':hole.R>=b.R*1.12?'#4dff9a':'#ffc24d';
@@ -407,6 +409,13 @@ function draw(){
   ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=Math.max(1,R*.02);ctx.beginPath();ctx.arc(hx,hy,R*.96,3.6,4.9);ctx.stroke();
   for(const b of bots)if(!(b.sp>0)&&Math.abs(b.x-cam.x)<vx+b.R*2&&Math.abs(b.y-cam.y)<vy+b.R*2)drawBot(b);
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
+  if(showLb){ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';
+    for(const o of objs){if(o.f>=0||!vis(o))continue;const fs=Math.max(8/sc,Math.min(13/sc,o.w*1.5+8)),y=o.y-o.h-o.hz*.9-fs*.7;
+      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle=o.need<=hole.R?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
+    for(const b of bots){if(b.sp>0||b.f>=0||Math.abs(b.x-cam.x)>vx+b.R||Math.abs(b.y-cam.y)>vy+b.R)continue;const fs=Math.max(10/sc,b.R*.4),t=''+holeSc(b.R),y=b.y+b.R*.5;
+      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,b.x,y);ctx.fillText(t,b.x,y)}
+    if(!dead){const fs=Math.max(11/sc,hole.R*.5),t=''+holeSc(hole.R);ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,hole.x,hole.y);ctx.fillText(t,hole.x,hole.y)}
+    ctx.textBaseline='alphabetic'}
   ctx.font='bold 18px sans-serif';ctx.textAlign='center';
   for(const f of fx){ctx.globalAlpha=1-f.t/.8;ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=3;
     ctx.strokeText(f.s,f.x,f.y-20-f.t*40);ctx.fillText(f.s,f.x,f.y-20-f.t*40)}

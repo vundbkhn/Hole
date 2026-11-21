@@ -7,6 +7,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" id="ati" href="icon.svg">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <meta name="theme-color" content="#1b1033">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -100,7 +101,7 @@ const BIO=[
 const bio=n=>BIO[((n-1)/5|0)%BIO.length];
 
 /* ---------- bản đồ chọn màn (chỉ vẽ phần đang nhìn thấy) ---------- */
-let rs=-1,rt=0;
+let rs=-1,rt=0,off=false;
 const nodeX=i=>50+Math.sin(i*.8)*28,nodeY=i=>(MAXL-i)*88+70;
 function renderMap(force){
   const m=$('map'),vh=m.clientHeight,st=m.scrollTop-80,pd=vh*1.2;
@@ -117,7 +118,7 @@ function renderMap(force){
 function buildMap(){
   const m=$('map'),road=$('road'),cur=Math.min(done+1,MAXL);
   road.style.height=(MAXL*88+140)+'px';rs=-1;
-  $('prog').textContent='Đã qua '+done+'/'+MAXL+' màn';
+  $('prog').textContent='Đã qua '+done+'/'+MAXL+' màn'+(off?' · chơi offline được':'');
   m.scrollTop=nodeY(cur)+80-m.clientHeight/2;renderMap(true);
 }
 $('road').onclick=e=>{const n=+(e.target.dataset&&e.target.dataset.n);if(n&&n<=done+1)play(n)};
@@ -136,7 +137,7 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 
 /* ---------- game ---------- */
 const cv=$('cv'),ctx=cv.getContext('2d');
-let TT=0,B,deco=[],CW,CH,DPR,lvl=1,objs=[],fx=[],hole,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
+let TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],CW,CH,DPR,lvl=1,objs=[],fx=[],hole,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);CW=innerWidth;CH=innerHeight;cv.width=CW*DPR;cv.height=CH*DPR}
 addEventListener('resize',resize);resize();
 
@@ -159,15 +160,15 @@ function gen(n){
   // loại vật thể không thể ăn được theo tiến trình tăng kích thước
   L.sort((a,b)=>a.need-b.need);let S=0;const keep=[];
   for(const o of L){if(o.need<=rad(S)){keep.push(o);S+=o.pts}}
-  keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;
+  keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
   hole={x:hx,y:hy,R:rad(0),tr:rad(0)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
 }
 function play(n){
-  lvl=n;gen(n);initMove();score=0;eaten=0;fx=[];won=false;js=null;combo=0;
+  lvl=n;gen(n);initMove();initBots();score=0;eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};sc=Math.min(CW,CH)/(260+hole.R*6);
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on');
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
-  const h=$('hint');h.textContent=B.ic+' '+B.n+': chạm giữ và kéo để di chuyển';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3500);
+  const h=$('hint');h.textContent=B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ!';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3500);
   running=true;last=performance.now();requestAnimationFrame(loop);music();
 }
 function toMenu(){running=false;$('game').classList.remove('on');$('menu').classList.add('on');buildMap()}
@@ -191,7 +192,30 @@ function moveObj(o,dt){
   if(o.x<m){o.x=m;o.vx=Math.abs(o.vx)}else if(o.x>WS-m){o.x=WS-m;o.vx=-Math.abs(o.vx)}
   if(o.y<m){o.y=m;o.vy=Math.abs(o.vy)}else if(o.y>WS-m){o.y=WS-m;o.vy=-Math.abs(o.vy)}
 }
+function newBot(far){
+  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R=14+Math.pow(Math.random(),1.4)*(mx-14);
+  let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
+  return{x,y,R,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
+function initBots(){bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
+function lose(){dead=true;$('wt').textContent='Bạn bị nuốt!';$('wd').textContent='Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>$('win').classList.add('on'),600)}
+function updBots(dt){
+  if(grace>0)grace-=dt;
+  for(const b of bots){
+    if(b.f>=0){b.f+=dt*3;b.x+=(hole.x-b.x)*Math.min(1,dt*8);b.y+=(hole.y-b.y)*Math.min(1,dt*8);if(b.f>=1)Object.assign(b,newBot(700),{sp:4});continue}
+    if(b.sp>0){b.sp-=dt;continue}
+    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(110+b.R*.8)*.85;
+    if(b.R>=hole.R*1.12&&l<300+b.R*3){mx=dx/l;my=dy/l;spd*=1.05}
+    else if(hole.R>=b.R*1.12&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l;spd*=1.1}
+    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=3+Math.random()*4;b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}
+      const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl;spd*=.7}
+    const k=Math.min(1,dt*4);b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;
+    b.x=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.x+b.vx*dt));b.y=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.y+b.vy*dt));
+    if(dead)continue;
+    if(hole.R>=b.R*1.12&&l<hole.R*.8){b.f=0;const p=Math.round(b.R*1.5);score+=p;hole.tr=rad(score);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
+    else if(b.R>=hole.R*1.12&&l<b.R*.8&&grace<=0)lose()}
+}
 function update(dt){
+  if(dead){hole.R=Math.max(.5,hole.R*(1-Math.min(1,dt*3)));for(const f of fx)f.t+=dt;updBots(dt);return}
   if(js){const dx=js.x-js.sx,dy=js.y-js.sy,l=Math.hypot(dx,dy);
     if(l>6){const m=Math.min(l/60,1),sp=(130+hole.R*.9)*m;hole.x+=dx/l*sp*dt;hole.y+=dy/l*sp*dt;
       if(l>90){js.sx+=dx/l*(l-90);js.sy+=dy/l*(l-90)}}}
@@ -206,6 +230,7 @@ function update(dt){
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
     if(Math.hypot(o.x-hole.x,o.y-hole.y)<R*.8){o.f=0;eaten++;score+=o.pts;hole.tr=rad(score);combo=Math.min(combo+1,12);sfx(combo);
       fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});$('fill').style.width=(eaten/total*100)+'%'}}
+  if(!won)updBots(dt);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
@@ -341,6 +366,18 @@ function drawObj(o,s){
   if(B.deco!=='s'){ctx.fillStyle='rgba(0,0,0,.28)';E(2,3,o.w*1.05,o.h*.9);ctx.fill()}
   k(o,o.w,o.h,o.hz,o.c,o.d,o.vx<0?-1:1);ctx.restore();
 }
+function drawBot(b){
+  const sm=b.f>=0?1-b.f:1,R=b.R*sm,hx=b.x,hy=b.y;if(R<1)return;
+  const col=b.R>=hole.R*1.12?'#ff4d5e':hole.R>=b.R*1.12?'#4dff9a':'#ffc24d';
+  let g=ctx.createRadialGradient(hx,hy,R*.6,hx,hy,R*1.5);g.addColorStop(0,col+'88');g.addColorStop(1,col+'00');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(hx,hy,R*1.5,0,7);ctx.fill();
+  g=ctx.createRadialGradient(hx,hy,R*.2,hx,hy,R);g.addColorStop(0,'#000');g.addColorStop(.85,'#10060a');g.addColorStop(1,'#2a0f18');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(hx,hy,R,0,7);ctx.fill();
+  ctx.strokeStyle=col;ctx.lineWidth=Math.max(2.5,R*.08);ctx.beginPath();ctx.arc(hx,hy,R,0,7);ctx.stroke();
+  const ml=Math.hypot(b.vx,b.vy)||1,ex=b.vx/ml*R*.06,ey=b.vy/ml*R*.06;
+  for(const sx of[-1,1]){ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(hx+sx*R*.3,hy-R*.12,R*.17,R*.22,0,0,7);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(hx+sx*R*.3+ex,hy-R*.12+ey,R*.09,0,7);ctx.fill()}
+  if(col==='#ff4d5e'){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,R*.05);ctx.beginPath();ctx.moveTo(hx-R*.52,hy-R*.42);ctx.lineTo(hx-R*.12,hy-R*.3);ctx.moveTo(hx+R*.52,hy-R*.42);ctx.lineTo(hx+R*.12,hy-R*.3);ctx.stroke()}
+}
 function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
   ctx.setTransform(DPR*sc,0,0,DPR*sc,DPR*(CW/2-cam.x*sc),DPR*(CH/2-cam.y*sc));
@@ -368,6 +405,7 @@ function draw(){
   for(let k=0;k<3;k++){const a0=TT*(2-k*.6)+k*2;ctx.strokeStyle='rgba(190,160,255,'+(.5-k*.12)+')';ctx.lineWidth=Math.max(1.5,R*.045);ctx.beginPath();ctx.arc(hx,hy,R*(.88-k*.2),a0,a0+1.6);ctx.stroke()}
   ctx.strokeStyle='#b79bff';ctx.lineWidth=Math.max(2.5,R*.07);ctx.beginPath();ctx.arc(hx,hy,R,0,7);ctx.stroke();
   ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=Math.max(1,R*.02);ctx.beginPath();ctx.arc(hx,hy,R*.96,3.6,4.9);ctx.stroke();
+  for(const b of bots)if(!(b.sp>0)&&Math.abs(b.x-cam.x)<vx+b.R*2&&Math.abs(b.y-cam.y)<vy+b.R*2)drawBot(b);
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
   ctx.font='bold 18px sans-serif';ctx.textAlign='center';
   for(const f of fx){ctx.globalAlpha=1-f.t/.8;ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=3;
@@ -378,6 +416,7 @@ function draw(){
 }
 function loop(t){if(!running)return;const dt=Math.min((t-last)/1000,.05);last=t;TT=t/1000;update(dt);draw();requestAnimationFrame(loop)}
 buildMap();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{off=true;$('prog').textContent+=' · chơi offline được'}).catch(()=>{})}
 </script>
 </body>
 </html>

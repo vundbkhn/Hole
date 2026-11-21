@@ -132,7 +132,7 @@ const T=[[5,10,1,'#ff8a2b','c',4],[6,12,2,'#ffd166','c',6],[7,14,3,'#3ddc97','c'
 const CARC=['#e63946','#4cc9f0','#f72585','#90be6b','#f9c74f','#ffffff'];
 const THEMES=[['#2d5a3d','#363b48'],['#3b4a6b','#2b3040'],['#6b5a3a','#403d38'],['#5a3a6b','#352c42'],['#3a6b6b','#2b3b3e']];
 const shade=(c,k)=>{const n=parseInt(c.slice(1),16),m=v=>Math.min(255,v*k|0);return `rgb(${m(n>>16)},${m(n>>8&255)},${m(n&255)})`};
-const rad=S=>16+3.4*Math.sqrt(S);
+const rad=S=>16+5*Math.sqrt(S);
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
 /* ---------- game ---------- */
@@ -158,8 +158,8 @@ function gen(n){
     let ok=true;for(const o of L)if(Math.abs(o.x-x)<o.w+hw+2&&Math.abs(o.y-y)<o.h+hh+2){ok=false;break}
     if(ok)L.push({x,y,w:hw,h:hh,need:t[1],pts:t[2],c,d:shade(c,.6),sh:sp,hz:t[5],f:-1,i,vx:0,vy:0,ms:B.mv&&B.mv[i]?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free})}
   // loại vật thể không thể ăn được theo tiến trình tăng kích thước
-  L.sort((a,b)=>a.need-b.need);let S=0;const keep=[];
-  for(const o of L){if(o.need<=rad(S)){keep.push(o);S+=o.pts}}
+  L.sort((a,b)=>a.pts-b.pts);let S=0;const keep=[];
+  for(const o of L){if(o.pts<=S+1){keep.push(o);S+=o.pts}}
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
   hole={x:hx,y:hy,R:rad(0),tr:rad(0)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
 }
@@ -187,16 +187,16 @@ function initMove(){for(const o of objs)if(o.ms){let a=Math.random()*6.283;
   o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}
 function moveObj(o,dt){
   if(!o.ln){const dx=o.x-hole.x,dy=o.y-hole.y,l=Math.hypot(dx,dy);
-    if(o.need<=hole.R&&l<hole.R*2.2&&l>1){o.vx=dx/l*o.ms*1.4;o.vy=dy/l*o.ms*1.4;o.tm=1.5}
+    if(o.pts<=score+1&&l<hole.R*2.2&&l>1){o.vx=dx/l*o.ms*1.4;o.vy=dy/l*o.ms*1.4;o.tm=1.5}
     else{o.tm-=dt;if(o.tm<=0){o.tm=2+Math.random()*4;const a=Math.random()*6.283;o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}}
   o.x+=o.vx*dt;o.y+=o.vy*dt;const m=40;
   if(o.x<m){o.x=m;o.vx=Math.abs(o.vx)}else if(o.x>WS-m){o.x=WS-m;o.vx=-Math.abs(o.vx)}
   if(o.y<m){o.y=m;o.vy=Math.abs(o.vy)}else if(o.y>WS-m){o.y=WS-m;o.vy=-Math.abs(o.vy)}
 }
 function newBot(far){
-  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R=14+Math.pow(Math.random(),1.4)*(mx-14);
+  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
-  return{x,y,R,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
+  return{x,y,R,P,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
 function initBots(){bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
 function lose(){dead=true;$('wt').textContent='Bạn bị nuốt!';$('wd').textContent='Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>$('win').classList.add('on'),600)}
 function updBots(dt){
@@ -205,15 +205,15 @@ function updBots(dt){
     if(b.f>=0){b.f+=dt*3;b.x+=(hole.x-b.x)*Math.min(1,dt*8);b.y+=(hole.y-b.y)*Math.min(1,dt*8);if(b.f>=1)Object.assign(b,newBot(700),{sp:4});continue}
     if(b.sp>0){b.sp-=dt;continue}
     const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(110+b.R*.8)*.85;
-    if(b.R>=hole.R*1.12&&l<300+b.R*3){mx=dx/l;my=dy/l;spd*=1.05}
-    else if(hole.R>=b.R*1.12&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l;spd*=1.1}
+    if(b.P>score+1&&l<300+b.R*3){mx=dx/l;my=dy/l;spd*=1.05}
+    else if(score+1>=b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l;spd*=1.1}
     else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=3+Math.random()*4;b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}
       const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl;spd*=.7}
     const k=Math.min(1,dt*4);b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;
     b.x=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.x+b.vx*dt));b.y=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.y+b.vy*dt));
     if(dead)continue;
-    if(hole.R>=b.R*1.12&&l<hole.R*.8){b.f=0;const p=Math.round(b.R*1.5);score+=p;hole.tr=rad(score);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
-    else if(b.R>=hole.R*1.12&&l<b.R*.8&&grace<=0)lose()}
+    if(score+1>=b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;const p=Math.max(2,Math.round(b.P*.6));score+=p;hole.tr=rad(score);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
+    else if(b.P>score+1&&l<b.R&&grace<=0)lose()}
 }
 function update(dt){
   if(dead){hole.R=Math.max(.5,hole.R*(1-Math.min(1,dt*3)));for(const f of fx)f.t+=dt;updBots(dt);return}
@@ -222,14 +222,14 @@ function update(dt){
       if(l>90){js.sx+=dx/l*(l-90);js.sy+=dy/l*(l-90)}}}
   hole.x=Math.max(0,Math.min(WS,hole.x));hole.y=Math.max(0,Math.min(WS,hole.y));
   hole.R+=(hole.tr-hole.R)*Math.min(1,dt*6);
-  const R=hole.R,lim=R+80;
+  const R=Math.max(hole.R,hole.tr),P=score+1,lim=R+80;
   for(const o of objs){
     if(o.f>=1)continue;
     if(o.f>=0){o.f+=dt*3.5;o.x+=(hole.x-o.x)*Math.min(1,dt*9);o.y+=(hole.y-o.y)*Math.min(1,dt*9);continue}
     if(o.ms)moveObj(o,dt);
-    if(o.need>R)continue;
+    if(o.pts>P)continue;
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
-    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R*.8){o.f=0;eaten++;score+=o.pts;hole.tr=rad(score);combo=Math.min(combo+1,12);sfx(combo);
+    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;score+=o.pts;hole.tr=rad(score);combo=Math.min(combo+1,12);sfx(combo);
       fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});$('fill').style.width=(eaten/total*100)+'%'}}
   if(!won)updBots(dt);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
@@ -370,7 +370,7 @@ function drawObj(o,s){
 const holeSc=R=>Math.round(Math.pow(Math.max(0,(R-16)/3.4),2));
 function drawBot(b){
   const sm=b.f>=0?1-b.f:1,R=b.R*sm,hx=b.x,hy=b.y;if(R<1)return;
-  const col=b.R>=hole.R*1.12?'#ff4d5e':hole.R>=b.R*1.12?'#4dff9a':'#ffc24d';
+  const col=b.P>score+1?'#ff4d5e':'#4dff9a';
   let g=ctx.createRadialGradient(hx,hy,R*.6,hx,hy,R*1.5);g.addColorStop(0,col+'88');g.addColorStop(1,col+'00');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(hx,hy,R*1.5,0,7);ctx.fill();
   g=ctx.createRadialGradient(hx,hy,R*.2,hx,hy,R);g.addColorStop(0,'#000');g.addColorStop(.85,'#10060a');g.addColorStop(1,'#2a0f18');
@@ -411,10 +411,10 @@ function draw(){
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
   if(showLb){ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';
     for(const o of objs){if(o.f>=0||!vis(o))continue;const fs=Math.max(8/sc,Math.min(13/sc,o.w*1.5+8)),y=o.y-o.h-o.hz*.9-fs*.7;
-      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle=o.need<=hole.R?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
-    for(const b of bots){if(b.sp>0||b.f>=0||Math.abs(b.x-cam.x)>vx+b.R||Math.abs(b.y-cam.y)>vy+b.R)continue;const fs=Math.max(10/sc,b.R*.4),t=''+holeSc(b.R),y=b.y+b.R*.5;
+      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle=o.pts<=score+1?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
+    for(const b of bots){if(b.sp>0||b.f>=0||Math.abs(b.x-cam.x)>vx+b.R||Math.abs(b.y-cam.y)>vy+b.R)continue;const fs=Math.max(10/sc,b.R*.4),t=''+b.P,y=b.y+b.R*.5;
       ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,b.x,y);ctx.fillText(t,b.x,y)}
-    if(!dead){const fs=Math.max(11/sc,hole.R*.5),t=''+holeSc(hole.R);ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,hole.x,hole.y);ctx.fillText(t,hole.x,hole.y)}
+    if(!dead){const fs=Math.max(11/sc,hole.R*.5),t=''+(score+1);ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,hole.x,hole.y);ctx.fillText(t,hole.x,hole.y)}
     ctx.textBaseline='alphabetic'}
   ctx.font='bold 18px sans-serif';ctx.textAlign='center';
   for(const f of fx){ctx.globalAlpha=1-f.t/.8;ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=3;

@@ -143,7 +143,7 @@ addEventListener('resize',resize);resize();
 
 function gen(n){
   B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);WS=1300+d*10;theme=THEMES[((n-1)/35|0)%5];
-  const N=Math.min(150+d*3,560),w=T.map((t,i)=>[10,10,7,5,8,7,3,4,3,1][i]*(.55+Math.min(n,150)/35)**(i/4)),sw=w.reduce((a,b)=>a+b),L=[];
+  const N=Math.min(170+d*3,600),w=T.map((t,i)=>[10,10,7,5,8,7,3,4,3,1][i]*[1,1,1,1,1,1,1.6,2.5,3.5,5][i]*(.55+Math.min(n,150)/35)**(i/4)),sw=w.reduce((a,b)=>a+b),L=[];
   const dR=v=>{const m=v%G;return Math.min(m,G-m)},nl=Math.floor(WS/G);
   const hx=G*(nl>>1),hy=G*(nl>>1);
   for(let k=0;k<N*4&&L.length<N;k++){
@@ -185,10 +185,14 @@ cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 function initMove(){for(const o of objs)if(o.ms){let a=Math.random()*6.283;
   if(o.ln)a=o.w>o.h?(Math.random()<.5?0:Math.PI):(Math.random()<.5?1.5708:-1.5708);
   o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}
+const OBJ_MOVE=.2;
 function moveObj(o,dt){
+  const SP=(130+hole.R*.9)*OBJ_MOVE; // mọi vật chuyển động = 20% tốc độ người chơi
+  {let l0=Math.hypot(o.vx,o.vy);if(l0<1e-6){const a=Math.random()*6.283;o.vx=Math.cos(a);o.vy=Math.sin(a);l0=1}
+    o.vx=o.vx/l0*SP;o.vy=o.vy/l0*SP}
   if(!o.ln){const dx=o.x-hole.x,dy=o.y-hole.y,l=Math.hypot(dx,dy);
-    if(o.pts<=score+1&&l<hole.R*2.2&&l>1){o.vx=dx/l*o.ms*1.4;o.vy=dy/l*o.ms*1.4;o.tm=1.5}
-    else{o.tm-=dt;if(o.tm<=0){o.tm=2+Math.random()*4;const a=Math.random()*6.283;o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}}
+    if(o.pts<=score+1&&l<hole.R*2.2&&l>1){o.vx=dx/l*SP;o.vy=dy/l*SP;o.tm=1.5}
+    else{o.tm-=dt;if(o.tm<=0){o.tm=2+Math.random()*4;const a=Math.random()*6.283;o.vx=Math.cos(a)*SP;o.vy=Math.sin(a)*SP}}}
   o.x+=o.vx*dt;o.y+=o.vy*dt;const m=40;
   if(o.x<m){o.x=m;o.vx=Math.abs(o.vx)}else if(o.x>WS-m){o.x=WS-m;o.vx=-Math.abs(o.vx)}
   if(o.y<m){o.y=m;o.vy=Math.abs(o.vy)}else if(o.y>WS-m){o.y=WS-m;o.vy=-Math.abs(o.vy)}
@@ -197,12 +201,12 @@ function newBot(far){
   const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
   return{x,y,R,P,tr:R,cd:0,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
-function initBots(){bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
+function initBots(){botT=0;bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
 function lose(){dead=true;$('wt').textContent='Bạn bị nuốt!';$('wd').textContent='Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>$('win').classList.add('on'),600)}
 function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<=S+1)S+=p;else return false}return true}
 function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
-function nearFood(b){let best=null,bd=600;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
-const BOT_EAT=.2,BOT_MOVE=.5; // tốc độ ăn = 20%, tốc độ di chuyển = 50% so với người chơi
+function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
+let botT=0;const BOT_EAT=.2,BOT_MOVE=.5; // tốc độ ăn = 20%, tốc độ di chuyển = 50% so với người chơi
 function respawnFood(o){ // vật bị hố đối thủ ăn sẽ xuất hiện lại ở chỗ khác -> màn chơi luôn hoàn thành được
   const c=Object.assign({},o,{f:-1,tg:null,fr:undefined,bk:0,vx:o.vx,vy:o.vy});let t=0;
   do{if(o.ln){if(o.w>=o.h)c.x=60+Math.random()*(WS-120);else c.y=60+Math.random()*(WS-120)}
@@ -217,14 +221,15 @@ function botEat(b){
     respawnFood(o);return}
 }
 function updBots(dt){
-  if(grace>0)grace-=dt;
+  if(grace>0)grace-=dt;botT+=dt;
   for(const b of bots){
     if(b.f>=0){b.f+=dt*3;b.x+=(hole.x-b.x)*Math.min(1,dt*8);b.y+=(hole.y-b.y)*Math.min(1,dt*8);if(b.f>=1)Object.assign(b,newBot(700),{sp:4});continue}
     if(b.sp>0){b.sp-=dt;continue}
     if(b.cd>0)b.cd-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
     const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE;
-    if(b.P>score+1&&l<300+b.R*3){mx=dx/l;my=dy/l}
-    else if(score+1>=b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
+    const fd=nearFood(b); // ưu tiên ăn vật thể; chỉ săn người chơi khi hết đồ ăn gần, đã qua giai đoạn đầu hoặc người chơi ở rất gần
+    if(score+1>=b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
+    else if(b.P>score+1&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}
     else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const f=nearFood(b);if(f){b.tx=f.x;b.ty=f.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}}
       const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl}
     const k=Math.min(1,dt*4);b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;

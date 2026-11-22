@@ -320,7 +320,7 @@ const T=[[5,10,1,'#ff8a2b','c',4],[6,12,2,'#ffd166','c',6],[7,14,3,'#3ddc97','c'
 const CARC=['#e63946','#4cc9f0','#f72585','#90be6b','#f9c74f','#ffffff'];
 const THEMES=[['#2d5a3d','#363b48'],['#3b4a6b','#2b3040'],['#6b5a3a','#403d38'],['#5a3a6b','#352c42'],['#3a6b6b','#2b3b3e']];
 const shade=(c,k)=>{const n=parseInt(c.slice(1),16),m=v=>Math.min(255,v*k|0);return `rgb(${m(n>>16)},${m(n>>8&255)},${m(n&255)})`};
-const rad=S=>16+5*Math.sqrt(S);
+const RK=3.2,rad=S=>16+RK*Math.sqrt(S); // hệ số tăng kích thước hố (đã giảm từ 5)
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
 /* ---------- game ---------- */
@@ -332,7 +332,7 @@ const GFX={ultra:{dmin:2,dmax:3,px:8.6e6,fps:120,sq:'high',q:2.4,tex:2,vig:.55,s
   low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'medium',q:1.5,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:0,detail:0,swirl:0,deb:6}};
 let gm='normal';try{const v=localStorage.getItem('bh_gfx');if(GFX[v])gm=v}catch(e){}
 let cfg=GFX[gm];document.body.dataset.gfx=gm;
-const zf=()=>Math.min(CW,CH)/(260+hole.R*3.2); // zoom nhẹ: hố to lên thì map chỉ thu nhỏ rất ít
+const zf=()=>Math.min(CW,CH)/(260+hole.R*1.1); // zoom nhẹ: hố to lên thì map chỉ thu nhỏ rất ít
 function getViewSize(){
   const r=cv.getBoundingClientRect();
   if(r.width>0&&r.height>0)return[r.width,r.height];
@@ -461,7 +461,7 @@ function moveObj(o,dt){
   if(o.y<m){o.y=m;o.vy=Math.abs(o.vy)}else if(o.y>WS-m){o.y=WS-m;o.vy=-Math.abs(o.vy)}
 }
 function newBot(far,fixedP){
-  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=fixedP!=null?fixedP:Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
+  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=fixedP!=null?fixedP:Math.max(1,Math.round(Math.pow((R0-16)/RK,2))+1),R=rad(P-1);
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
   return{x,y,R,P,tr:R,cd:0,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
 function initBots(){
@@ -563,7 +563,7 @@ function update(dt){
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*8);cam.y+=(hole.y-cam.y)*Math.min(1,dt*8);
-  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*.45);
+  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*.25);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}

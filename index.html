@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Hố Đen</title>
+<title>Hố Đen Thành Phố</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" id="ati" href="icon.svg">
 <link rel="manifest" href="manifest.json">
@@ -13,8 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-html,body{margin:0;height:100%;background:#120a26;color:#fff;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;overflow:hidden;touch-action:none}
-.scr{position:fixed;inset:0;display:none}
+html,body{margin:0;width:100%;height:100%;background:#120a26;color:#fff;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;overflow:hidden;touch-action:none}
+.scr{position:fixed;inset:0;width:100%;height:100%;display:none}
 .scr.on{display:block}
 #menu{background:radial-gradient(ellipse at 50% 0,#3b1d7a 0,#120a26 70%)}
 #top{position:absolute;left:0;right:0;top:0;z-index:5;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(#120a26 60%,transparent)}
@@ -33,7 +33,7 @@ html,body{margin:0;height:100%;background:#120a26;color:#fff;font-family:"Trebuc
 @keyframes pl{50%{box-shadow:0 0 0 12px rgba(138,92,255,.25)}}
 .ban{position:absolute;left:50%;transform:translateX(-50%);padding:4px 12px;border-radius:14px;background:#241247dd;font-size:13px;border:1px solid #8a5cff;white-space:nowrap;pointer-events:none}
 #game{background:#000}
-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0;display:flex;align-items:center;gap:8px;pointer-events:none}
 #hud .ib{pointer-events:auto;width:38px;height:38px;font-size:16px}
 #lv{font-weight:700;font-size:15px;min-width:54px}
@@ -252,18 +252,40 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 
 /* ---------- game ---------- */
 const cv=$('cv'),ctx=cv.getContext('2d',{alpha:false});
-let vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],CW,CH,DPR,lvl=1,objs=[],fx=[],hole,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
+let vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
 /* chế độ đồ hoạ: dmin/dmax = giới hạn tỉ lệ điểm ảnh, px = trần số điểm ảnh, fps, sq = chất lượng lọc ảnh, q = độ nét sprite, tex = texture (0 phẳng/1 thường/2 chi tiết), vig = vầng tối rìa, sp/spc = số tia sáng mỗi lần ăn/tối đa, rings = vòng xoay, bloom/light = hiệu ứng ánh sáng */
 const GFX={ultra:{dmin:1.5,dmax:3,px:8.3e6,fps:120,sq:'high',q:2,tex:2,vig:.55,sp:8,spc:90,rings:5,bloom:1,light:1},
   normal:{dmin:1,dmax:2,px:1e12,fps:60,sq:'medium',q:1.3,tex:1,vig:.5,sp:4,spc:40,rings:3,bloom:0,light:0},
   low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'low',q:1,tex:0,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0}};
 let gm='normal';try{const v=localStorage.getItem('bh_gfx');if(GFX[v])gm=v}catch(e){}
 let cfg=GFX[gm];
-function resize(){DPR=Math.min(Math.max(devicePixelRatio||1,cfg.dmin),cfg.dmax);CW=innerWidth;CH=innerHeight;
-  while(CW*CH*DPR*DPR>cfg.px&&DPR>1)DPR=Math.max(1,DPR-.25);
-  cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);ctx.imageSmoothingQuality=cfg.sq;
-  if(cfg.vig){vig=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.38,CW/2,CH/2,Math.hypot(CW,CH)*.55);vig.addColorStop(0,'rgba(8,2,22,0)');vig.addColorStop(1,'rgba(8,2,22,'+cfg.vig+')')}else vig=null}
-addEventListener('resize',resize);resize();
+function getViewSize(){
+  const r=cv.getBoundingClientRect();
+  if(r.width>0&&r.height>0)return[r.width,r.height];
+  const vv=window.visualViewport;
+  return[vv?vv.width:innerWidth,vv?vv.height:innerHeight];
+}
+function syncCanvasSize(w,h){
+  DPR=Math.min(Math.max(devicePixelRatio||1,cfg.dmin),cfg.dmax);
+  while(w*h*DPR*DPR>cfg.px&&DPR>1)DPR=Math.max(1,DPR-.25);
+  CW=w;CH=h;
+  cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);
+  ctx.imageSmoothingQuality=cfg.sq;
+  if(cfg.vig){vig=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.38,CW/2,CH/2,Math.hypot(CW,CH)*.55);vig.addColorStop(0,'rgba(8,2,22,0)');vig.addColorStop(1,'rgba(8,2,22,'+cfg.vig+')')}else vig=null;
+  if(hole)sc=Math.min(CW,CH)/(260+hole.R*6);
+}
+function resize(){
+  const sz=getViewSize();
+  if(!sz[0]||!sz[1])return;
+  syncCanvasSize(sz[0],sz[1]);
+  if($('menu').classList.contains('on'))renderMap(true);
+  else if(!running&&hole&&B&&$('game').classList.contains('on')){try{draw()}catch(e){}}
+}
+function onOrient(){js=null;resize();requestAnimationFrame(resize);setTimeout(resize,150);setTimeout(resize,380)}
+addEventListener('resize',resize);
+addEventListener('orientationchange',onOrient);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);
+resize();
 
 function gen(n){
   B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);WS=1300+d*10;theme=THEMES[((n-1)/35|0)%5];
@@ -290,8 +312,9 @@ function gen(n){
 function play(n){
   pickSkin();
   lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
-  cam={x:hole.x,y:hole.y};sc=Math.min(CW,CH)/(260+hole.R*6);gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
+  cam={x:hole.x,y:hole.y};gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
+  resize();sc=Math.min(CW,CH)/(260+hole.R*6);
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   const h=$('hint');h.textContent=B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ! Skin: '+SK[skinI][0];h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3500);
   startLoop();wakeAudio();
@@ -606,8 +629,11 @@ function drawBot(b){
   if(st===2){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,R*.05);ctx.beginPath();ctx.moveTo(hx-R*.52,hy-R*.42);ctx.lineTo(hx-R*.12,hy-R*.3);ctx.moveTo(hx+R*.52,hy-R*.42);ctx.lineTo(hx+R*.12,hy-R*.3);ctx.stroke()}
 }
 function draw(){
-  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
-  ctx.setTransform(DPR*sc,0,0,DPR*sc,DPR*(CW/2-cam.x*sc),DPR*(CH/2-cam.y*sc));
+  const sz=getViewSize();
+  if(sz[0]>0&&sz[1]>0&&(Math.abs(sz[0]-CW)>.5||Math.abs(sz[1]-CH)>.5))syncCanvasSize(sz[0],sz[1]);
+  const sx=cv.width/CW,sy=cv.height/CH;
+  ctx.setTransform(sx,0,0,sy,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
+  ctx.setTransform(sx*sc,0,0,sy*sc,sx*(CW/2-cam.x*sc),sy*(CH/2-cam.y*sc));
   ctx.fillStyle=gPat;ctx.fillRect(0,0,WS,WS);
   const vx=CW/sc/2+60,vy=CH/sc/2+60;
   if(B.deco){const st=B.deco==='s';ctx.strokeStyle='rgba(255,255,255,.18)';ctx.fillStyle=st?'#fff':'rgba(255,255,255,.14)';ctx.lineWidth=3;
@@ -646,8 +672,8 @@ function draw(){
     ctx.strokeText(f.s,f.x,f.y-20-f.t*40);ctx.fillText(f.s,f.x,f.y-20-f.t*40)}
   if(spk.length){ctx.fillStyle=SK[skinI][4];const z=4/sc;for(const q of spk){ctx.globalAlpha=Math.max(0,1-q.t/.5);ctx.fillRect(q.x-z/2,q.y-z/2,z,z)}}
   ctx.globalAlpha=1;
-  if(vig){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=vig;ctx.fillRect(0,0,CW,CH)} // vầng tối nhẹ ở rìa màn hình
-  if(js){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(js.sx,js.sy,40,0,7);ctx.stroke();
+  if(vig){ctx.setTransform(sx,0,0,sy,0,0);ctx.fillStyle=vig;ctx.fillRect(0,0,CW,CH)} // vầng tối nhẹ ở rìa màn hình
+  if(js){ctx.setTransform(sx,0,0,sy,0,0);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(js.sx,js.sy,40,0,7);ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(js.sx+Math.max(-40,Math.min(40,js.x-js.sx)),js.sy+Math.max(-40,Math.min(40,js.y-js.sy)),16,0,7);ctx.fill()}
 }
 let raf=0,idle=0,nextT=0;

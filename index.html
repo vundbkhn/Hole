@@ -7,6 +7,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" id="ati" href="icon.svg">
 <link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <meta name="theme-color" content="#1b1033">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -92,6 +93,30 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 #bkt:focus{border-color:#8a5cff}
 #bkm{min-height:18px;text-align:center;font-size:13px;font-weight:700;margin:-2px 0 10px;color:#9be7ff}
 #bkm.err{color:#ff8a8a}#bkm.ok{color:#7dffc0}
+
+#acm{position:fixed;inset:0;z-index:40;background:radial-gradient(circle at 50% 18%,#3a1d7a,#120a26 70%);display:none;align-items:center;justify-content:center;padding:calc(var(--st) + 14px) calc(var(--sr) + 18px) calc(var(--sb) + 14px) calc(var(--sl) + 18px)}
+#acm.on{display:flex}
+#acm .box{width:100%;max-width:380px;margin:auto;max-height:100%;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;text-align:center;padding:2px}
+#acm .alogo{width:84px;height:84px;border-radius:22px;box-shadow:0 8px 26px rgba(120,70,240,.55);display:block;margin:0 auto 8px}
+#acm h2{margin:0 0 4px;font-size:28px}
+#acm .sub{opacity:.8;font-size:13px;margin-bottom:14px;line-height:1.35}
+#acm .tabs{display:flex;background:#1a0d38;border-radius:16px;padding:4px;margin-bottom:12px;border:1.5px solid #4b3a78}
+#acm .tabs button{flex:1;border:0;border-radius:12px;padding:10px;background:transparent;color:#bfb2e6;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+#acm .tabs button.on{background:linear-gradient(180deg,#9b72ff,#7746f5);color:#fff;box-shadow:0 3px 10px rgba(120,70,240,.45)}
+#acm input{display:block;width:100%;padding:13px 14px;margin-bottom:10px;border-radius:14px;border:2px solid #4b3a78;background:#160a30;color:#fff;font:inherit;font-size:16px;outline:none;user-select:text;-webkit-user-select:text}
+#acm input:focus{border-color:#8a5cff}
+#acm .pw{position:relative}#acm .pw input{padding-right:48px}
+#acm .pw button{position:absolute;right:6px;top:4px;width:40px;height:40px;border:0;background:transparent;font-size:19px;cursor:pointer;color:#fff}
+#aum{min-height:20px;font-size:13px;font-weight:700;margin:0 0 10px;color:#9be7ff}
+#aum.err{color:#ff8a8a}#aum.ok{color:#7dffc0}
+#acm .btn{display:block;width:100%;max-width:none;margin:0 0 10px}
+#acm .btn:disabled{opacity:.6}
+#acw{margin-bottom:6px;padding-bottom:6px}
+#acw h3,#bkw summary{margin:0 0 4px;font-size:18px;text-align:center}
+#bkw summary{cursor:pointer;font-weight:700;padding:6px 0 10px;list-style:none;opacity:.9}
+#bkw summary::-webkit-details-marker{display:none}
+#bkw[open] summary{opacity:1}
+#acs{margin-bottom:10px}#acs.err{color:#ff8a8a;opacity:1}#acs b{color:#ffe27a}
 #sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
 .sc{position:relative;border:2px solid #4b3a78;background:radial-gradient(circle at 50% 42%,#341a6b,#1c0d3b 78%);border-radius:16px;padding:4px 3px 6px;text-align:center;color:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer;min-width:0;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:transform .12s,border-color .15s}
 .sc div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
@@ -145,13 +170,26 @@ body[data-gfx=low] #win.w #wi{filter:none}
   <div id="hint">Chạm giữ và kéo để di chuyển hố đen</div>
   <div id="win"><div id="cf"></div><div id="wc"><div id="wt0"><div id="wi"></div><div id="ws"></div><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div></div><div id="wb"><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div></div></div>
 </div>
+
+<div id="acm"><div class="box">
+  <img class="alogo" id="aulg" alt="">
+  <h2>Hố Đen</h2>
+  <div class="sub" id="aus0">Đăng nhập để tự động lưu và đồng bộ tiến độ trên mọi thiết bị</div>
+  <div class="tabs"><button id="atl" class="on">Đăng nhập</button><button id="atr">Đăng ký</button></div>
+  <input id="auu" type="text" placeholder="Tên đăng nhập" maxlength="30" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <div class="pw"><input id="aup" type="password" placeholder="Mật khẩu (tối thiểu 1 ký tự)" maxlength="200" autocomplete="current-password"><button id="aps" type="button" aria-label="Hiện mật khẩu">👁</button></div>
+  <div id="aum"></div>
+  <button class="btn" id="aug">Đăng nhập</button>
+  <button class="btn alt" id="aux">Chơi không cần tài khoản</button>
+</div></div>
 <div id="skm"><div class="box"><h2>🎨 Quản lý Skin Hố Đen</h2><div class="sub">Chọn 1 trong 20 skin 3D để dùng cố định, hoặc bật ngẫu nhiên mỗi màn</div><div id="skst"></div><div id="sg"></div><div class="mfoot"><button class="btn" id="skx">Đóng</button></div></div></div>
 <div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div>
-<div id="bkw"><h3>💾 Sao lưu &amp; khôi phục</h3><div class="sub">Lưu tiến độ, skin và đồ hoạ thành một mã. Dán lại mã này sau khi cài lại game để chơi tiếp.</div>
+<div id="acw"><h3>👤 Tài khoản</h3><div class="sub" id="acs"></div><div id="acb"></div></div>
+<details id="bkw"><summary>💾 Sao lưu &amp; khôi phục thủ công ▾</summary><div class="sub">Lưu tiến độ, skin và đồ hoạ thành một mã. Dán lại mã này sau khi cài lại game để chơi tiếp.</div>
 <textarea id="bkt" placeholder="Mã sao lưu sẽ hiện ở đây. Để khôi phục, dán mã vào ô này." autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
 <div id="bkm"></div>
 <button class="go" id="bkb"><b>📤 Sao lưu tiến độ</b><span>Tạo mã và tự sao chép vào bộ nhớ tạm. Hãy dán mã vào Ghi chú để giữ lại.</span></button>
-<button class="go" id="bkr"><b>📥 Khôi phục từ mã</b><span>Dán mã vào ô phía trên rồi bấm. Tiến độ hiện tại sẽ bị thay thế.</span></button></div>
+<button class="go" id="bkr"><b>📥 Khôi phục từ mã</b><span>Dán mã vào ô phía trên rồi bấm. Tiến độ hiện tại sẽ bị thay thế.</span></button></details>
 <div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -1567,7 +1605,7 @@ function applyGfx(m){gm=m;cfg=GFX[m];document.body.dataset.gfx=m;try{localStorag
   if(!running&&nextT>=0)nextT=0}
 function drawGl(){$('gl').innerHTML='';for(const k of['ultra','normal','low']){const b=document.createElement('button');b.className='go'+(k===gm?' on':'');b.innerHTML='<b>'+GN[k][0]+'</b><span>'+GN[k][1]+'</span>';tap(b,()=>{applyGfx(k);drawGl()});$('gl').appendChild(b)}}
 let wasRun=false;
-function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}drawGl();$('set').classList.add('on')}
+function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}drawGl();if(window.renderAcc)window.renderAcc();$('set').classList.add('on')}
 function closeSet(){$('set').classList.remove('on');if(wasRun&&$('game').classList.contains('on'))startLoop();wasRun=false}
 
 /* ---------- giao diện quản lý 20 skin hố đen ---------- */
@@ -1670,6 +1708,106 @@ tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
     say('✅ Khôi phục thành công! Đang tải lại...','ok');setTimeout(()=>location.reload(),700);
   });
   $('sx').addEventListener('click',()=>say(''));
+})();
+
+/* ---------- tài khoản & đồng bộ ---------- */
+(function(){
+  const API=(window.BH_API||'').replace(/\/+$/,''),LS=window.localStorage;
+  const g=k=>{try{return LS.getItem(k)}catch(e){return null}},st=(k,v)=>{try{LS.setItem(k,v)}catch(e){}},rm=k=>{try{LS.removeItem(k)}catch(e){}};
+  const PREF=['bh_done','bh_lb','bh_gfx','bh_skin'];
+  let busy=false,timer=0,quiet=false,lastKey='',lastOk=true,mode='login',working=false;
+  try{const si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){si.call(this,k,v);
+    if(this===LS&&!quiet&&PREF.includes(k)){if(k!=='bh_done')si.call(this,'bh_ts',String(Date.now()));sched()}}}catch(e){}
+  const local=()=>{const d=Math.max(0,parseInt(g('bh_done'))||0);let s=g('bh_skin');s=(s===null||s==='')?-1:+s;
+    return{d,l:g('bh_lb')==='0'?0:1,g:GFX[g('bh_gfx')]?g('bh_gfx'):null,s:Number.isInteger(s)?s:-1,ts:+g('bh_ts')||0}};
+  const keyOf=x=>JSON.stringify([x.d,x.l,x.g,x.s]);
+  async function call(path,data,tok){
+    const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);
+    try{return await fetch(API+path,{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json',...(tok?{Authorization:'Bearer '+tok}:{})},body:JSON.stringify(data||{})})}
+    finally{clearTimeout(t)}
+  }
+  function apply(m){
+    if(!m)return false;
+    const need=m.d!==done||m.s!==skinSel||(m.l===1)!==showLb||(m.g&&m.g!==gm);
+    quiet=true;
+    try{st('bh_done',m.d);st('bh_lb',m.l);st('bh_skin',m.s<0?'':m.s);if(m.g)st('bh_gfx',m.g);st('bh_ts',m.ts)}finally{quiet=false}
+    return need;
+  }
+  const hhmm=t=>{const d=new Date(+t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')};
+  function renderAcc(){
+    const s=$('acs'),b=$('acb');if(!s||!b)return;b.innerHTML='';s.className='sub';
+    const add=(t,sub,fn,alt)=>{const x=document.createElement('button');x.className='go';x.innerHTML='<b></b><span></span>';x.firstChild.textContent=t;x.lastChild.textContent=sub;tap(x,fn);b.appendChild(x)};
+    const tok=g('bh_tok');
+    if(tok){
+      s.textContent='';const n=document.createElement('b');n.textContent=g('bh_usr')||'';
+      s.append('Đang đăng nhập: ',n,g('bh_sync')?' · Đồng bộ lúc '+hhmm(g('bh_sync')):'');
+      if(!lastOk){s.append(' · ⚠ chưa đồng bộ được');s.classList.add('err')}
+      add('🔄 Đồng bộ ngay','Tiến độ tự động đồng bộ mỗi khi bạn chơi.',()=>sync(true));
+      add('🚪 Đăng xuất','Đăng xuất khỏi tài khoản trên thiết bị này.',logout);
+    }else{
+      s.textContent=API?'Bạn đang chơi không tài khoản. Tiến độ chỉ lưu trên máy này.':'Chưa kết nối máy chủ đồng bộ (xem HUONG-DAN.md).';
+      add('👤 Đăng nhập / Đăng ký','Tự động sao lưu và đồng bộ tiến độ giữa các thiết bị.',()=>{$('set').classList.remove('on');openAuth()});
+    }
+  }
+  window.renderAcc=renderAcc;
+  function setStat(t){const s=$('acs');if(s&&$('set').classList.contains('on')&&t)s.textContent=t;if(!t&&$('set').classList.contains('on'))renderAcc()}
+  async function sync(manual){
+    const tok=g('bh_tok');if(!API||!tok||busy)return;
+    const L=local();if(!manual&&keyOf(L)===lastKey)return;
+    busy=true;if(manual)setStat('Đang đồng bộ...');
+    try{
+      const r=await call('/sync',{data:L},tok);
+      if(r.status===401){lastOk=false;['bh_tok'].forEach(rm);setStat();openAuth('Phiên đăng nhập đã hết hạn, hãy đăng nhập lại.');return}
+      const j=await r.json();if(!j.ok)throw 0;
+      const reload=apply(j.data);lastKey=keyOf(local());lastOk=true;st('bh_sync',Date.now());
+      if(reload){showHint('☁ Đã đồng bộ tiến độ từ tài khoản, đang tải lại...',2000);setTimeout(()=>location.reload(),900);return}
+      renderAcc();
+    }catch(e){lastOk=false;if(manual)setStat('Chưa đồng bộ được. Hãy kiểm tra kết nối mạng.');setTimeout(renderAcc,1800)}
+    finally{busy=false}
+  }
+  function sched(){if(!API||!g('bh_tok'))return;clearTimeout(timer);timer=setTimeout(()=>sync(false),4000)}
+  /* --- màn hình đăng nhập / đăng ký --- */
+  const msg=(t,k)=>{const m=$('aum');m.textContent=t||'';m.className=k||''};
+  function setMode(m){mode=m;$('atl').classList.toggle('on',m==='login');$('atr').classList.toggle('on',m==='register');
+    $('aug').textContent=m==='login'?'Đăng nhập':'Tạo tài khoản';$('aup').autocomplete=m==='login'?'current-password':'new-password';msg('')}
+  function openAuth(note){$('aulg').src=$('logo').src;setMode('login');msg(note||'',note?'err':'');$('acm').classList.add('on')}
+  function closeAuth(){$('acm').classList.remove('on');$('aup').value=''}
+  async function submit(){
+    if(working)return;
+    const u=$('auu').value.trim(),p=$('aup').value;
+    if(!u){msg('Hãy nhập tên đăng nhập','err');return}
+    if(!p.length){msg('Hãy nhập mật khẩu (tối thiểu 1 ký tự)','err');return}
+    if(!API){msg('Chưa kết nối máy chủ đồng bộ (xem HUONG-DAN.md).','err');return}
+    working=true;$('aug').disabled=true;msg('Đang xử lý...');
+    try{
+      const body={u,p};if(mode==='register')body.data=local();
+      const r=await call('/'+mode,body),j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.ok){msg(j.err||'Lỗi máy chủ ('+r.status+')','err');return}
+      st('bh_tok',j.token);st('bh_usr',j.user);rm('bh_guest');
+      msg(mode==='register'?'✅ Tạo tài khoản thành công!':'✅ Đăng nhập thành công!','ok');
+      busy=false;lastKey='';await sync(true);
+      setTimeout(closeAuth,500);
+    }catch(e){msg('Không kết nối được máy chủ. Hãy kiểm tra mạng.','err')}
+    finally{working=false;$('aug').disabled=false}
+  }
+  async function logout(){
+    lastKey='';await sync(true);
+    const ok=lastOk&&confirm('Đăng xuất? Tiến độ đã được lưu trên tài khoản, đăng nhập lại để chơi tiếp.')||(!lastOk&&confirm('⚠ Chưa đồng bộ được lần cuối. Đăng xuất sẽ mất tiến độ chưa lưu. Vẫn đăng xuất?'));
+    if(!ok)return;
+    const tok=g('bh_tok');try{await call('/logout',{},tok)}catch(e){}
+    ['bh_tok','bh_usr','bh_ts','bh_sync','bh_done','bh_skin','bh_guest'].forEach(rm);
+    location.reload();
+  }
+  tap($('atl'),()=>setMode('login'));tap($('atr'),()=>setMode('register'));
+  tap($('aug'),submit);
+  tap($('aux'),()=>{st('bh_guest','1');closeAuth();if($('set').classList.contains('on'))renderAcc()});
+  tap($('aps'),()=>{const i=$('aup');i.type=i.type==='password'?'text':'password'});
+  for(const id of['auu','aup'])$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  window.addEventListener('online',()=>sync(true));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&g('bh_tok')){clearTimeout(timer);sync(false)}});
+  // Khởi động: chưa đăng nhập & chưa chọn "chơi không cần tài khoản" → hiện màn hình đăng nhập
+  if(API&&!g('bh_tok')&&!g('bh_guest'))openAuth();
+  else if(g('bh_tok'))setTimeout(()=>sync(true),700);
 })();
 
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(mt){clearInterval(mt);mt=null}}else{if(running){last=performance.now();nextT=0}resize();wakeAudio()}});

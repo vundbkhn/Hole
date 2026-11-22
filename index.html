@@ -75,7 +75,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 #set,#skm{position:fixed;inset:0;z-index:30;background:rgba(10,5,25,.9);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:calc(var(--st) + 14px) calc(var(--sr) + 16px) calc(var(--sb) + 14px) calc(var(--sl) + 16px)}
 #set.on,#skm.on{display:flex}
 #set .box,#skm .box{width:100%;max-width:440px;margin:auto;max-height:100%;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;padding:2px}
-#sx,#skx{position:sticky;bottom:0;box-shadow:0 0 0 8px rgba(10,5,25,.96);width:100%;max-width:none;z-index:3}
+.mfoot{position:sticky;bottom:0;width:100%;display:flex;justify-content:center;align-items:center;padding:10px 0 4px;background:linear-gradient(to bottom,rgba(10,5,25,0),rgba(10,5,25,.96) 32%);z-index:3}
+#sx,#skx{display:block;width:100%;max-width:none;margin:0 auto;box-shadow:0 4px 16px rgba(120,70,240,.5),inset 0 1px 0 rgba(255,255,255,.3)}
 #set h2,#skm h2{margin:0 0 4px;font-size:24px;text-align:center}
 #set .sub,#skm .sub{opacity:.8;font-size:13px;text-align:center;margin-bottom:10px}
 #skst{background:linear-gradient(180deg,#2d1860,#1d0e42);border:1.5px solid #8a5cff;border-radius:14px;padding:8px 12px;margin-bottom:10px;text-align:center;font-size:13px;font-weight:700;color:#ffe27a;box-shadow:0 3px 10px rgba(0,0,0,.35)}
@@ -84,13 +85,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .go b{display:block;font-size:17px;margin-bottom:3px}
 .go span{font-size:13px;opacity:.75;line-height:1.35;display:block}
 .go.on{border-color:#8a5cff;background:#3b1d7a;box-shadow:0 0 0 3px rgba(138,92,255,.3)}
-@media (orientation:landscape){
-#set .box{max-width:780px}#set h2{margin-bottom:10px}
-#gl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-#gl .go{margin:0;height:100%;display:flex;flex-direction:column;justify-content:flex-start}
-#sx{max-width:320px;margin:0 auto}}
-#sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+#sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
 .sc{position:relative;border:2px solid #4b3a78;background:radial-gradient(circle at 50% 42%,#341a6b,#1c0d3b 78%);border-radius:16px;padding:4px 3px 6px;text-align:center;color:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer;min-width:0;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:transform .12s,border-color .15s}
+.sc div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
 .sc:active{transform:scale(.96)}
 .sc canvas{position:static;width:100%;height:auto;aspect-ratio:1;display:block}
 .sc.on{border-color:#4dff9a;background:radial-gradient(circle at 50% 42%,#482594,#251152 78%);box-shadow:0 0 0 3px rgba(77,255,154,.35),0 4px 14px rgba(0,0,0,.5)}
@@ -99,18 +96,30 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .sc.rnd.on{border-color:#4cc9f0;box-shadow:0 0 0 3px rgba(76,201,240,.35)}
 .sc.rnd.on::after{content:"ĐANG BẬT";background:#2482a8}
 @media (max-width:430px){#top{gap:6px}#top .ib{width:39px;height:39px;font-size:17px}}
-@media (orientation:landscape){#skm .box{max-width:820px}#sg{grid-template-columns:repeat(5,1fr)}#skx{max-width:320px;margin:0 auto}}
-@media (orientation:landscape) and (max-height:520px){#skm .sub{display:none}#skm h2{font-size:19px;margin-bottom:6px}#skst{padding:5px 10px;margin-bottom:8px;font-size:12px}#sg{grid-template-columns:repeat(7,1fr);gap:6px}.sc{font-size:10px;padding:3px 2px 4px}.sc.rnd{padding:7px;font-size:12px}}
 @media (orientation:landscape){
+#top{padding:calc(var(--st) + 8px) max(20px,calc(var(--sr) + 14px)) 8px max(20px,calc(var(--sl) + 14px));gap:10px}
+#map{padding-top:calc(var(--st) + 64px);padding-bottom:calc(var(--sb) + 74px)}
+#road{max-width:min(860px,90vw)}
+.ban{padding:6px 16px;font-size:14px;border-radius:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+#rg{bottom:calc(var(--sb) + 14px);width:auto;min-width:250px;max-width:340px;padding:12px 28px;font-size:16px;border:1.5px solid rgba(255,255,255,.35)}
+#hud{padding:calc(var(--st) + 8px) max(18px,calc(var(--sr) + 12px)) 0 max(18px,calc(var(--sl) + 12px));gap:9px}
+#set .box{max-width:min(820px,92vw)}#set h2{margin-bottom:10px}
+#gl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+#gl .go{margin:0;height:100%;display:flex;flex-direction:column;justify-content:flex-start}
+#skm .box{max-width:min(860px,94vw)}#sg{grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+#sx,#skx{width:280px;max-width:75%;margin:0 auto}
 #wc{max-width:720px;flex-direction:row;gap:22px;align-items:center}
 #wt0{flex:1 1 50%;min-width:0}#wb{flex:1 1 50%;min-width:0}
 #wi{font-size:64px}#win h2{font-size:24px}#ws{font-size:22px}
 .btn{min-width:0;width:100%;max-width:280px;padding:11px 18px;font-size:16px}}
 @media (orientation:landscape) and (max-height:520px){
-#top{padding-top:calc(var(--st) + 6px);padding-bottom:6px}#top img{width:34px;height:34px}#top h1{font-size:17px}
-#map{padding-top:calc(var(--st) + 56px)}
+#top{padding-top:calc(var(--st) + 6px);padding-bottom:6px}#top img{width:36px;height:36px}#top h1{font-size:18px}
+#map{padding-top:calc(var(--st) + 56px);padding-bottom:calc(var(--sb) + 66px)}
+#rg{bottom:calc(var(--sb) + 10px);padding:10px 24px;font-size:15px}
+#pz{gap:10px}
+#skm .sub{display:none}#skm h2{font-size:19px;margin-bottom:6px}#skst{padding:5px 10px;margin-bottom:8px;font-size:12px}#sg{grid-template-columns:repeat(7,1fr);gap:6px}.sc{font-size:10px;padding:3px 2px 4px}.sc.rnd{padding:7px;font-size:12px}
 #wi{font-size:50px}#win h2{font-size:21px}.btn{padding:9px 16px;font-size:15px}
-#set .sub{display:none}#set h2{font-size:19px;margin-bottom:8px}#set .box{max-width:780px}#gl{gap:8px;margin-bottom:8px}.go{padding:8px 12px}.go b{font-size:15px;margin-bottom:1px}.go span{font-size:12px;line-height:1.25}
+#set .sub{display:none}#set h2{font-size:19px;margin-bottom:8px}#gl{gap:8px;margin-bottom:6px}.go{padding:8px 12px}.go b{font-size:15px;margin-bottom:1px}.go span{font-size:12px;line-height:1.25}
 #hint{bottom:10%}}
 body[data-gfx=low] .node.cur::after,body[data-gfx=low] #win #wi{animation:none}
 body[data-gfx=low] #win.w #wi{filter:none}
@@ -129,8 +138,8 @@ body[data-gfx=low] #win.w #wi{filter:none}
   <div id="hint">Chạm giữ và kéo để di chuyển hố đen</div>
   <div id="win"><div id="cf"></div><div id="wc"><div id="wt0"><div id="wi"></div><div id="ws"></div><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div></div><div id="wb"><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div></div></div>
 </div>
-<div id="skm"><div class="box"><h2>🎨 Quản lý Skin Hố Đen</h2><div class="sub">Chọn 1 trong 20 skin 3D để dùng cố định, hoặc bật ngẫu nhiên mỗi màn</div><div id="skst"></div><div id="sg"></div><button class="btn" id="skx" style="width:100%">Đóng</button></div></div>
-<div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div><button class="btn" id="sx" style="width:100%">Đóng</button></div></div>
+<div id="skm"><div class="box"><h2>🎨 Quản lý Skin Hố Đen</h2><div class="sub">Chọn 1 trong 20 skin 3D để dùng cố định, hoặc bật ngẫu nhiên mỗi màn</div><div id="skst"></div><div id="sg"></div><div class="mfoot"><button class="btn" id="skx">Đóng</button></div></div></div>
+<div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div><div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script>
 const $=id=>document.getElementById(id);
 const MAXL=10000,START_PTS=5;
@@ -273,14 +282,21 @@ const BIO=[
 const bio=n=>BIO[((n-1)/5|0)%BIO.length];
 
 /* ---------- bản đồ chọn màn ---------- */
-let rt=0,off=false,SP=80,NS=58,TL=11,rLo=-1,rHi=-1,mapPT=0;
-const nodeX=i=>50+Math.sin(i*.8)*28,nodeY=i=>(TL-i)*SP+SP/2+24;
+let rt=0,off=false,SP=80,NS=58,TL=11,rLo=-1,rHi=-1,mapPT=0,mapPB=0;
+const isLandscape=()=>innerWidth>innerHeight;
+const nodeX=i=>50+Math.sin(i*.8)*(isLandscape()?35:28),nodeY=i=>(TL-i)*SP+SP/2+24;
 const levelAtY=y=>TL-(y-SP/2-24)/SP;
 function layoutMap(){
-  const m=$('map');mapPT=parseFloat(getComputedStyle(m).paddingTop)||0;
+  const m=$('map'),cs=getComputedStyle(m);
+  mapPT=parseFloat(cs.paddingTop)||0;mapPB=parseFloat(cs.paddingBottom)||0;
   const usable=Math.max(200,m.clientHeight-mapPT-12);
-  SP=Math.round(Math.max(44,Math.min(88,usable/10)));
-  NS=Math.round(Math.min(58,SP-12));
+  if(isLandscape()){
+    SP=Math.round(Math.max(72,Math.min(88,usable/4.6)));
+    NS=Math.round(Math.max(52,Math.min(60,SP-18)));
+  }else{
+    SP=Math.round(Math.max(44,Math.min(88,usable/10)));
+    NS=Math.round(Math.min(58,SP-12));
+  }
 }
 function renderMap(force){
   const m=$('map'),vh=m.clientHeight,yt=m.scrollTop-mapPT,yb=yt+vh;
@@ -288,12 +304,12 @@ function renderMap(force){
   const lo=Math.max(1,Math.floor((vLo-10)/5)*5),hi=Math.min(TL,Math.ceil((vHi+10)/5)*5);
   const lo2=Math.max(1,lo);
   if(!force&&lo2===rLo&&hi===rHi)return;rLo=lo2;rHi=hi;
-  const cur=Math.min(done+1,MAXL),top=nodeY(hi)-SP/2,hg=(hi-lo2)*SP+SP,pt=i=>nodeX(i).toFixed(1)+' '+(nodeY(i)-top);
-  const path=(a,b,st)=>{if(b<=a)return '';let d='';for(let i=b;i>=a;i--)d+=(i===b?'M':'L')+pt(i)+' ';return `<path d="${d}" fill="none" ${st} stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`};
+  const land=isLandscape(),sw=land?7:5,cur=Math.min(done+1,MAXL),top=nodeY(hi)-SP/2,hg=(hi-lo2)*SP+SP,pt=i=>nodeX(i).toFixed(1)+' '+(nodeY(i)-top);
+  const path=(a,b,st)=>{if(b<=a)return '';let d='';for(let i=b;i>=a;i--)d+=(i===b?'M':'L')+pt(i)+' ';return `<path d="${d}" fill="none" ${st} stroke-width="${sw}" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`};
   let h=`<div style="position:absolute;left:0;right:0;top:${top}px;height:${hg}px"><svg viewBox="0 0 100 ${hg}" preserveAspectRatio="none">${path(Math.max(lo2,cur),hi,'stroke="#4b3a78" stroke-dasharray="3 9"')}${path(lo2,Math.min(hi,cur),'stroke="#8a5cff"')}</svg></div>`;
   for(let i=hi;i>=lo2;i--){const b=bio(i),c=i<=done?'done':i===done+1?'cur':'lock';
     h+=`<div class="node ${c}" data-n="${i}" style="left:${nodeX(i)}%;top:${nodeY(i)}px;border-color:${c==='cur'?'#fff':b.acc}${c==='done'?';background:'+b.acc+';color:#0d0820':''}">${i<=done+1?i:'🔒'}</div>`;
-    if((i-1)%5===0)h+=`<div class="ban" style="top:${nodeY(i)+NS/2+6}px">${b.ic} ${b.n}</div>`}
+    if((i-1)%5===0)h+=`<div class="ban" style="top:${nodeY(i)+NS/2+(land?8:6)}px">${b.ic} ${b.n}</div>`}
   $('road').innerHTML=h;
 }
 function canResume(){return live&&!won&&!dead&&!!hole&&!!B}
@@ -305,8 +321,9 @@ function buildMap(center){
   center=Math.max(1,Math.min(TL,center));
   road.style.height=((TL-1)*SP+SP+48)+'px';road.style.setProperty('--ns',NS+'px');rLo=rHi=-1;
   $('prog').textContent='Đã qua '+done+'/'+MAXL+' màn'+(off?' · chơi offline được':'');
-  m.scrollTop=nodeY(center)+mapPT-m.clientHeight/2;renderMap(true);
   const rg=$('rg');if(canResume()){rg.textContent='▶ Tiếp tục màn '+lvl;rg.style.display='block'}else rg.style.display='none';
+  const visH=m.clientHeight-(canResume()?mapPB:0);
+  m.scrollTop=nodeY(center)+mapPT-visH/2;renderMap(true);
 }
 function mapCenterLevel(){const m=$('map');return Math.round(levelAtY(m.scrollTop-mapPT+m.clientHeight/2))}
 function resumeGame(){
@@ -1165,7 +1182,7 @@ const SKA={
       sE(g,0,4,36,25,0,'rgba(0,0,0,.22)');
       sE(g,0,0,36,25,0,sG3(g,0,0,36,l),shade(m,.48),2.2);
       for(const x of[-10,10])sE(g,x,1,5.5,8.5,0,'#5e2424');
-      sE(-12,-9,10,5,-.3,'rgba(255,255,255,.55)');
+      sE(g,-12,-9,10,5,-.3,'rgba(255,255,255,.55)');
       g.restore();
       // 2 mắt tròn đen bóng
       for(const[x,y]of[[-44,-78],[-6,-90]]){

@@ -85,6 +85,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .go b{display:block;font-size:17px;margin-bottom:3px}
 .go span{font-size:13px;opacity:.75;line-height:1.35;display:block}
 .go.on{border-color:#8a5cff;background:#3b1d7a;box-shadow:0 0 0 3px rgba(138,92,255,.3)}
+
+#bkw{margin-top:6px;padding-top:10px;border-top:1.5px solid #4b3a78}
+#bkw h3{margin:0 0 4px;font-size:18px;text-align:center}
+#bkt{display:block;width:100%;height:84px;resize:none;margin:0 0 10px;padding:10px;border-radius:14px;border:2px solid #4b3a78;background:#160a30;color:#d9ccff;font:16px/1.3 ui-monospace,Menlo,monospace;user-select:text;-webkit-user-select:text;outline:none;word-break:break-all}
+#bkt:focus{border-color:#8a5cff}
+#bkm{min-height:18px;text-align:center;font-size:13px;font-weight:700;margin:-2px 0 10px;color:#9be7ff}
+#bkm.err{color:#ff8a8a}#bkm.ok{color:#7dffc0}
 #sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
 .sc{position:relative;border:2px solid #4b3a78;background:radial-gradient(circle at 50% 42%,#341a6b,#1c0d3b 78%);border-radius:16px;padding:4px 3px 6px;text-align:center;color:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer;min-width:0;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:transform .12s,border-color .15s}
 .sc div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
@@ -139,7 +146,13 @@ body[data-gfx=low] #win.w #wi{filter:none}
   <div id="win"><div id="cf"></div><div id="wc"><div id="wt0"><div id="wi"></div><div id="ws"></div><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div></div><div id="wb"><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div></div></div>
 </div>
 <div id="skm"><div class="box"><h2>🎨 Quản lý Skin Hố Đen</h2><div class="sub">Chọn 1 trong 20 skin 3D để dùng cố định, hoặc bật ngẫu nhiên mỗi màn</div><div id="skst"></div><div id="sg"></div><div class="mfoot"><button class="btn" id="skx">Đóng</button></div></div></div>
-<div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div><div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
+<div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div>
+<div id="bkw"><h3>💾 Sao lưu &amp; khôi phục</h3><div class="sub">Lưu tiến độ, skin và đồ hoạ thành một mã. Dán lại mã này sau khi cài lại game để chơi tiếp.</div>
+<textarea id="bkt" placeholder="Mã sao lưu sẽ hiện ở đây. Để khôi phục, dán mã vào ô này." autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+<div id="bkm"></div>
+<button class="go" id="bkb"><b>📤 Sao lưu tiến độ</b><span>Tạo mã và tự sao chép vào bộ nhớ tạm. Hãy dán mã vào Ghi chú để giữ lại.</span></button>
+<button class="go" id="bkr"><b>📥 Khôi phục từ mã</b><span>Dán mã vào ô phía trên rồi bấm. Tiến độ hiện tại sẽ bị thay thế.</span></button></div>
+<div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script>
 const $=id=>document.getElementById(id);
 const MAXL=10000,START_PTS=5;
@@ -1613,6 +1626,52 @@ tap($('gsb'),openSkinMgr);
 tap($('psk'),openSkinMgr);
 tap($('skx'),closeSkinMgr);
 tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
+/* ---------- sao lưu & khôi phục tiến độ ---------- */
+(function(){
+  const PFX='BH1-',msg=$('bkm'),box=$('bkt');
+  const say=(t,k)=>{msg.textContent=t;msg.className=k||''};
+  const sum=str=>{let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36)};
+  const b64=s=>btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const unb64=s=>atob(s.replace(/-/g,'+').replace(/_/g,'/'));
+  function build(){
+    const d={d:done|0,l:showLb?1:0,g:gm,s:skinSel};
+    const j=JSON.stringify(d);return PFX+b64(j)+'.'+sum(j);
+  }
+  function parse(t){
+    t=(t||'').replace(/\s+/g,'');const i=t.indexOf(PFX);if(i<0)throw 0;t=t.slice(i+PFX.length);
+    const p=t.split('.');if(p.length<2)throw 0;
+    const j=unb64(p[0]);if(sum(j)!==p[1].slice(0,8).toLowerCase()&&sum(j)!==p[1])throw 0;
+    const d=JSON.parse(j);
+    if(!Number.isInteger(d.d)||d.d<0||d.d>MAXL)throw 0;
+    if(!GFX[d.g])d.g='normal';
+    if(!Number.isInteger(d.s)||d.s<-1||d.s>=SK.length)d.s=-1;
+    d.l=d.l?1:0;return d;
+  }
+  function copy(t){
+    try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t).then(()=>true,()=>false)}catch(e){}
+    try{box.focus();box.select();box.setSelectionRange(0,t.length);return Promise.resolve(document.execCommand('copy'))}catch(e){return Promise.resolve(false)}
+  }
+  tap($('bkb'),()=>{
+    const c=build();box.value=c;
+    copy(c).then(ok=>{
+      say(ok?'✅ Đã sao chép mã. Hãy dán vào Ghi chú để giữ lại!':'Mã đã tạo. Hãy chạm giữ vào ô, chọn Sao chép rồi dán vào Ghi chú.',ok?'ok':'');
+      if(!ok){try{box.focus();box.select();box.setSelectionRange(0,c.length)}catch(e){}}
+    });
+  });
+  tap($('bkr'),async()=>{
+    let t=box.value.trim();
+    if(!t&&navigator.clipboard&&navigator.clipboard.readText){try{t=(await navigator.clipboard.readText()).trim();box.value=t}catch(e){}}
+    if(!t){say('Hãy dán mã sao lưu vào ô phía trên rồi bấm lại.','err');return}
+    let d;try{d=parse(t)}catch(e){say('❌ Mã không hợp lệ hoặc bị thiếu ký tự. Hãy sao chép lại đầy đủ.','err');return}
+    const rs=d.s<0?'ngẫu nhiên':'skin '+(d.s+1)+' ('+SK[d.s][0]+')';
+    if(!confirm('Khôi phục: đã qua '+d.d+' màn, '+rs+'.\nTiến độ hiện tại ('+done+' màn) sẽ bị thay thế. Tiếp tục?'))return;
+    try{localStorage.setItem('bh_done',d.d);localStorage.setItem('bh_lb',d.l);localStorage.setItem('bh_gfx',d.g);localStorage.setItem('bh_skin',d.s<0?'':d.s)}
+    catch(e){say('❌ Không ghi được dữ liệu trên thiết bị này.','err');return}
+    say('✅ Khôi phục thành công! Đang tải lại...','ok');setTimeout(()=>location.reload(),700);
+  });
+  $('sx').addEventListener('click',()=>say(''));
+})();
+
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(mt){clearInterval(mt);mt=null}}else{if(running){last=performance.now();nextT=0}resize();wakeAudio()}});
 window.addEventListener('pageshow',wakeAudio);
 window.addEventListener('focus',wakeAudio);

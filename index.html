@@ -24,22 +24,23 @@ html,body{margin:0;position:fixed;inset:0;width:100%;height:100%;overscroll-beha
 #top small{display:block;font-weight:400;font-size:12px;opacity:.7}
 .ib{width:44px;height:44px;border-radius:50%;border:2px solid #9b73ff;background:radial-gradient(circle at 35% 28%,#4a2a8f,#241247 70%);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.22);color:#fff;font-size:19px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;flex:none}
 .ib.off{opacity:.45;border-color:#555}
-#map{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;padding-top:calc(var(--st) + 70px)}
+#map{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;padding-top:calc(var(--st) + 70px);padding-bottom:calc(var(--sb) + 90px)}
 #road{position:relative;width:100%;max-width:520px;margin:0 auto}
 #road svg{position:absolute;inset:0;width:100%;height:100%}
-.node{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;border:3px solid #4b3a78;background:#241247;color:#8d7fb5;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.node{--d:var(--nd,58px);position:absolute;width:var(--d);height:var(--d);margin:calc(var(--d)/-2) 0 0 calc(var(--d)/-2);font-size:calc(var(--d)*.31)!important;border-radius:50%;border:3px solid #4b3a78;background:#241247;color:#8d7fb5;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .node.done{background:#2e9b6a;border-color:#7dffc0;color:#fff}
 .node.cur{background:#8a5cff;border-color:#fff;color:#fff}
 .node.cur::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid #8a5cff;pointer-events:none;animation:pl 1.4s ease-out infinite}
 .node.lock{cursor:default}
 @keyframes pl{from{transform:scale(1);opacity:.7}to{transform:scale(1.55);opacity:0}}
-.ban{position:absolute;left:50%;transform:translateX(-50%);padding:4px 12px;border-radius:14px;background:#241247dd;font-size:13px;border:1px solid #8a5cff;white-space:nowrap;pointer-events:none}
+.ban{position:absolute;left:50%;transform:translate(-50%,-50%);padding:4px 12px;border-radius:14px;background:#241247dd;font-size:13px;border:1px solid #8a5cff;white-space:nowrap;pointer-events:none}
 #game{background:#000}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-#hud{position:absolute;left:0;right:0;top:0;padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 0 calc(var(--sl) + 10px);display:flex;align-items:center;gap:8px;pointer-events:none}
-#hud .ib{pointer-events:auto;width:42px;height:42px;font-size:17px}
-#lv{font-weight:700;font-size:15px;min-width:54px}
-#bar{flex:1;height:14px;border-radius:7px;background:rgba(0,0,0,.45);border:2px solid #fff3;overflow:hidden}
+#hud{position:absolute;left:0;right:0;top:0;padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 0 calc(var(--sl) + 10px);display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;pointer-events:none;z-index:15}
+#hud .ib{pointer-events:auto;width:40px;height:40px;font-size:16px}
+#lv{font-weight:700;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lb,#gm,#gs,#rs{order:2}
+#bar{order:3;flex:1 0 100%;height:14px;border-radius:7px;background:rgba(0,0,0,.45);border:2px solid #fff3;overflow:hidden}
 #fill{height:100%;width:0;background:linear-gradient(90deg,#8a5cff,#ff8ad8);box-shadow:0 0 10px rgba(255,138,216,.6)}
 #hint{position:absolute;left:0;right:0;bottom:18%;text-align:center;font-size:16px;opacity:.9;pointer-events:none;text-shadow:0 2px 6px #000;transition:opacity .6s}
 #win{position:absolute;inset:0;background:rgba(10,5,25,.82);display:none;text-align:center;padding:calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 12px) calc(var(--sl) + 16px);overflow:auto;touch-action:pan-y;z-index:20}
@@ -87,6 +88,33 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 #wi{font-size:50px}#win h2{font-size:21px}.btn{padding:9px 16px;font-size:15px}
 #set .sub{display:none}#set h2{font-size:19px;margin-bottom:8px}#set .box{max-width:560px}.go{padding:8px 12px;margin-bottom:6px}.go b{font-size:15px;margin-bottom:1px}.go span{font-size:12px;line-height:1.25}
 #hint{bottom:10%}}
+
+/* nút quay lại màn đang chơi dở (trên bản đồ) */
+#rg{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sb) + 18px);z-index:6;min-width:0;width:auto;padding:13px 26px;box-shadow:0 6px 22px rgba(0,0,0,.55),0 0 0 3px rgba(255,255,255,.18);white-space:nowrap;animation:rgp 1.6s ease-in-out infinite}
+#rg.on{display:block}
+@keyframes rgp{50%{box-shadow:0 6px 22px rgba(0,0,0,.55),0 0 0 8px rgba(138,92,255,.35)}}
+body[data-gfx=low] #rg{animation:none}
+/* tạm dừng */
+#po{position:absolute;inset:0;z-index:10;display:none;align-items:center;justify-content:center;background:rgba(10,5,25,.62);padding:calc(var(--st) + 60px) calc(var(--sr) + 16px) calc(var(--sb) + 16px) calc(var(--sl) + 16px)}
+#po.on{display:flex}
+#po .pc{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:320px}
+#po h2{margin:0 0 6px;font-size:28px}#po .pi{font-size:46px;line-height:1}
+#po .btn{width:100%;max-width:none}
+#hud #pz{border-color:#ffd166}
+@media (orientation:landscape){
+#bar{order:1;flex:1 1 0;min-width:100px}
+#po .pc{flex-direction:row;flex-wrap:wrap;justify-content:center;max-width:620px;gap:10px}
+#po .pc>.pi,#po .pc>h2{flex:1 0 100%;text-align:center;margin:0}#po .pi{font-size:34px}#po h2{font-size:22px}
+#po .btn{width:auto;flex:1 1 150px;max-width:200px;min-width:140px}
+/* cài đặt đồ hoạ: 3 thẻ ngang đều nhau + nút Đóng căn giữa */
+#set .box{max-width:min(900px,100%)}
+#gl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+#gl .go{margin:0;padding:14px 14px;display:flex;flex-direction:column;align-items:flex-start}
+#gl .go b{font-size:17px;margin-bottom:6px}
+#sx{display:block;position:static;margin:0 auto;width:100%!important;max-width:260px;box-shadow:none}}
+@media (orientation:landscape) and (max-height:520px){
+#gl{gap:10px;margin-bottom:10px}#gl .go{padding:9px 11px}#gl .go b{font-size:14px;margin-bottom:3px}#gl .go span{font-size:11.5px;line-height:1.3}
+#po h2{font-size:19px}#po .pi{display:none}}
 /* chế độ tiết kiệm pin: tắt hoạt ảnh CSS lặp vô hạn */
 body[data-gfx=low] .node.cur::after,body[data-gfx=low] #win #wi{animation:none}
 body[data-gfx=low] #win.w #wi{filter:none}
@@ -96,10 +124,12 @@ body[data-gfx=low] #win.w #wi{filter:none}
 <div id="menu" class="scr on">
   <div id="top"><img id="logo" src="icon.svg" alt=""><h1>Hố Đen Thành Phố<small id="prog"></small></h1><div class="ib" id="jp" title="Về màn hiện tại">⌖</div><div class="ib" id="mm" title="Nhạc nền">♪</div><div class="ib" id="st" title="Cài đặt đồ hoạ">⚙</div></div>
   <div id="map"><div id="road"></div></div>
+  <button class="btn" id="rg">▶ Quay lại màn đang chơi</button>
 </div>
 <div id="game" class="scr">
   <canvas id="cv"></canvas>
-  <div id="hud"><div class="ib" id="bk">☰</div><div id="lv"></div><div id="bar"><div id="fill"></div></div><div class="ib" id="lb" title="Hiện điểm số">#</div><div class="ib" id="gm">♪</div><div class="ib" id="gs" title="Cài đặt đồ hoạ">⚙</div><div class="ib" id="rs">↻</div></div>
+  <div id="hud"><div class="ib" id="bk" title="Về bản đồ (giữ nguyên màn đang chơi)">☰</div><div class="ib" id="pz" title="Tạm dừng">⏸</div><div id="lv"></div><div class="ib" id="lb" title="Hiện điểm số">#</div><div class="ib" id="gm">♪</div><div class="ib" id="gs" title="Cài đặt đồ hoạ">⚙</div><div class="ib" id="rs" title="Chơi lại">↻</div><div id="bar"><div id="fill"></div></div></div>
+  <div id="po"><div class="pc"><div class="pi">⏸</div><h2>Tạm dừng</h2><button class="btn" id="pc">▶ Tiếp tục</button><button class="btn alt" id="pr">Chơi lại</button><button class="btn alt" id="pm">Về bản đồ</button></div></div>
   <div id="hint">Chạm giữ và kéo để di chuyển hố đen</div>
   <div id="win"><div id="cf"></div><div id="wc"><div id="wt0"><div id="wi"></div><div id="ws"></div><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div></div><div id="wb"><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div></div></div>
 </div>
@@ -246,39 +276,47 @@ const BIO=[
 {n:'Thiên hà',k:['comet','star','planet','star','planet','planet','ring','planet','gas','sun'],mv:{0:60,1:50,2:40,5:30,6:25},ic:'🌌',acc:'#c77dff',g:'#0a0420',free:1,deco:'s',all:'c',col:['#c77dff','#80ffdb','#ffd60a','#ff5d8f','#4cc9f0','#ff9e00','#f72585','#7b2cbf','#3a86ff','#fb5607']}];
 const bio=n=>BIO[((n-1)/5|0)%BIO.length];
 
-/* ---------- bản đồ chọn màn (chỉ vẽ phần đang nhìn thấy) ---------- */
-let rs=-1,rt=0,off=false;
-const nodeX=i=>50+Math.sin(i*.8)*28,nodeY=i=>(MAXL-i)*88+70;
+/* ---------- bản đồ chọn màn: 10 màn / màn hình, chỉ xem trước tối đa 10 màn so với màn cao nhất đang đạt ---------- */
+let rlo=0,rhi=-1,rt=0,off=false,spc=78,maxShow=11,mpad=70;
+const nodeX=i=>50+Math.sin(i*.8)*28,nodeY=i=>(maxShow-i)*spc+spc/2+6,lvAt=y=>Math.round(maxShow-(y-spc/2-6)/spc);
 function renderMap(force){
-  const m=$('map'),vh=m.clientHeight,st=m.scrollTop-80,pd=vh*1.2;
-  const lo=Math.max(1,Math.floor(MAXL-(st+vh+pd-70)/88)),hi=Math.min(MAXL,Math.ceil(MAXL-(st-pd-70)/88));
-  if(!force&&rs>0&&Math.abs(lo-rs)<10)return;rs=lo;
-  const cur=Math.min(done+1,MAXL),top=nodeY(hi)-44,hg=(hi-lo)*88+88,pt=i=>nodeX(i).toFixed(1)+' '+(nodeY(i)-top);
-  const path=(a,b,st,ex)=>{if(b<=a)return '';let d='';for(let i=b;i>=a;i--)d+=(i===b?'M':'L')+pt(i)+' ';return `<path d="${d}" fill="none" ${st} stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`};
+  const m=$('map'),vh=m.clientHeight,t=m.scrollTop;
+  const vhi=Math.min(maxShow,lvAt(t)+1),vlo=Math.max(1,lvAt(t+vh-mpad)-1);
+  if(!force&&rhi>0&&rlo<=Math.max(1,vlo-2)&&rhi>=Math.min(maxShow,vhi+2))return;
+  const lo=Math.max(1,vlo-8),hi=Math.min(maxShow,vhi+8);rlo=lo;rhi=hi;
+  const cur=Math.min(done+1,MAXL),top=nodeY(hi)-spc/2,hg=(hi-lo)*spc+spc,pt=i=>nodeX(i).toFixed(1)+' '+(nodeY(i)-top);
+  const path=(a,b,st)=>{if(b<=a)return '';let d='';for(let i=b;i>=a;i--)d+=(i===b?'M':'L')+pt(i)+' ';return `<path d="${d}" fill="none" ${st} stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`};
   let h=`<div style="position:absolute;left:0;right:0;top:${top}px;height:${hg}px"><svg viewBox="0 0 100 ${hg}" preserveAspectRatio="none">${path(Math.max(lo,cur),hi,'stroke="#4b3a78" stroke-dasharray="3 9"')}${path(lo,Math.min(hi,cur),'stroke="#8a5cff"')}</svg></div>`;
   for(let i=hi;i>=lo;i--){const b=bio(i),c=i<=done?'done':i===done+1?'cur':'lock';
     h+=`<div class="node ${c}" data-n="${i}" style="left:${nodeX(i)}%;top:${nodeY(i)}px;border-color:${c==='cur'?'#fff':b.acc}${c==='done'?';background:'+b.acc+';color:#0d0820':''}">${i<=done+1?i:'🔒'}</div>`;
-    if((i-1)%5===0)h+=`<div class="ban" style="top:${nodeY(i)+46}px">${b.ic} ${b.n}</div>`}
+    if((i-1)%5===0)h+=`<div class="ban" style="top:${nodeY(i)+spc/2}px">${b.ic} ${b.n}</div>`}
   $('road').innerHTML=h;
 }
-function buildMap(){
-  const m=$('map'),road=$('road'),cur=Math.min(done+1,MAXL);
-  road.style.height=(MAXL*88+140)+'px';rs=-1;
+function buildMap(keep){
+  const m=$('map'),road=$('road'),vh=m.clientHeight;if(!vh)return;
+  const cur=Math.min(done+1,MAXL);let L=cur;
+  if(keep===true&&rhi>0)L=Math.max(1,Math.min(maxShow,lvAt(m.scrollTop+(vh-mpad)/2)));
+  mpad=parseFloat(getComputedStyle(m).paddingTop)||70;
+  spc=Math.max(44,Math.min(96,(vh-mpad)/10)); // đúng 10 màn trong vùng nhìn thấy
+  maxShow=Math.min(MAXL,cur+10);               // chỉ cho xem trước 10 màn so với màn cao nhất
+  road.style.setProperty('--nd',Math.min(58,spc*.84).toFixed(1)+'px');
+  road.style.height=(maxShow*spc+spc/2+12)+'px';rlo=0;rhi=-1;
   $('prog').textContent='Đã qua '+done+'/'+MAXL+' màn'+(off?' · chơi offline được':'');
-  m.scrollTop=nodeY(cur)+80-m.clientHeight/2;renderMap(true);
+  m.scrollTop=nodeY(L)-(vh-mpad)/2;renderMap(true);
 }
-{let pid=null,px=0,py=0,pn=0,lt=-1e9;const R=$('road'),go=n=>{const t=performance.now();if(t-lt<450)return;lt=t;if(n&&n<=done+1)play(n)},nn=e=>+(e.target.dataset&&e.target.dataset.n);
+{let pid=null,px=0,py=0,pn=0,lt=-1e9;const R=$('road'),go=n=>{const t=performance.now();if(t-lt<450)return;lt=t;if(n&&n<=done+1){if(n===inProg)resumeGame();else play(n)}},nn=e=>+(e.target.dataset&&e.target.dataset.n);
 R.addEventListener('pointerdown',e=>{pid=e.pointerId;px=e.clientX;py=e.clientY;pn=nn(e)});
 R.addEventListener('pointerup',e=>{if(pid===e.pointerId&&pn&&Math.hypot(e.clientX-px,e.clientY-py)<10&&nn(e)===pn)go(pn);pid=null});
 R.addEventListener('pointercancel',()=>{pid=null});
 R.addEventListener('click',e=>go(nn(e)))}
 $('map').addEventListener('scroll',()=>{cancelAnimationFrame(rt);rt=requestAnimationFrame(()=>renderMap())},{passive:true});
-tap($('jp'),buildMap);
+tap($('jp'),()=>buildMap());
 
 /* ---------- dữ liệu vật thể ---------- */
 // [r, need, pts, color, shape, height]
 const T=[[5,10,1,'#ff8a2b','c',4],[6,12,2,'#ffd166','c',6],[7,14,3,'#3ddc97','c',8],[9,18,4,'#b5835a','r',5],[12,24,6,'#2e9b4f','c',14],
-[16,32,10,'#e63946','r',8],[24,48,25,'#f2c14e','r',12],[30,60,30,'#d9534f','r',16],[44,85,60,'#6c7a9c','r',40],[60,120,120,'#4aa3df','r',70]];
+[16,32,10,'#e63946','r',8],[24,48,25,'#f2c14e','r',12],[30,60,30,'#d9534f','r',16],[44,85,60,'#6c7a9c','r',40],[60,120,120,'#4aa3df','r',70],
+[72,140,250,'#5b6b8c','r',95],[96,190,500,'#3d8bd9','r',130]];
 const CARC=['#e63946','#4cc9f0','#f72585','#90be6b','#f9c74f','#ffffff'];
 const THEMES=[['#2d5a3d','#363b48'],['#3b4a6b','#2b3040'],['#6b5a3a','#403d38'],['#5a3a6b','#352c42'],['#3a6b6b','#2b3b3e']];
 const shade=(c,k)=>{const n=parseInt(c.slice(1),16),m=v=>Math.min(255,v*k|0);return `rgb(${m(n>>16)},${m(n>>8&255)},${m(n&255)})`};
@@ -287,11 +325,11 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 
 /* ---------- game ---------- */
 const cv=$('cv'),ctx=cv.getContext('2d',{alpha:false});
-let vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
+let vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=420,RW=70,combo=0,deb=[],shk=0;
 /* chế độ đồ hoạ: shadow = bóng đổ, detail = chi tiết nền/hạt, swirl = xoáy xoay quanh hố; dmin/dmax = giới hạn tỉ lệ điểm ảnh, px = trần số điểm ảnh, fps, sq = chất lượng lọc ảnh, q = độ nét sprite, tex = texture (0 phẳng/1 thường/2 chi tiết), vig = vầng tối rìa, sp/spc = số tia sáng mỗi lần ăn/tối đa, rings = vòng xoay, bloom/light = hiệu ứng ánh sáng */
-const GFX={ultra:{dmin:2,dmax:3,px:8.6e6,fps:120,sq:'high',q:2.4,tex:2,vig:.55,sp:10,spc:120,rings:5,bloom:1,light:1,shadow:2,detail:2,swirl:1},
-  normal:{dmin:1.5,dmax:2.5,px:6.2e6,fps:60,sq:'high',q:2,tex:2,vig:.5,sp:6,spc:60,rings:4,bloom:1,light:1,shadow:1,detail:1,swirl:1},
-  low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'medium',q:1.5,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:0,detail:0,swirl:0}};
+const GFX={ultra:{dmin:2,dmax:3,px:8.6e6,fps:120,sq:'high',q:2.4,tex:2,vig:.55,sp:10,spc:120,rings:5,bloom:1,light:1,shadow:2,detail:2,swirl:1,deb:40},
+  normal:{dmin:1.5,dmax:2.5,px:6.2e6,fps:60,sq:'high',q:2,tex:2,vig:.5,sp:6,spc:60,rings:4,bloom:1,light:1,shadow:1,detail:1,swirl:1,deb:24},
+  low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'medium',q:1.5,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:0,detail:0,swirl:0,deb:6}};
 let gm='normal';try{const v=localStorage.getItem('bh_gfx');if(GFX[v])gm=v}catch(e){}
 let cfg=GFX[gm];document.body.dataset.gfx=gm;
 function getViewSize(){
@@ -317,7 +355,7 @@ function resize(){
   const sz=getViewSize();
   if(!sz[0]||!sz[1])return;
   const ch=syncCanvasSize(sz[0],sz[1]);
-  if($('menu').classList.contains('on')){const h=$('map').clientHeight;if(h!==mapH){mapH=h;renderMap(true)}}
+  if($('menu').classList.contains('on')){const h=$('map').clientHeight;if(h!==mapH){mapH=h;buildMap(true)}}
   // canvas vừa đổi kích thước thì bị xoá trắng -> vẽ lại ngay để không bị khung đen/méo
   else if(ch&&hole&&B&&cam&&$('game').classList.contains('on')){try{draw()}catch(e){}}
 }
@@ -340,28 +378,29 @@ if(window.ResizeObserver)new ResizeObserver(resize).observe(cv); // nguồn tin 
 resize();
 
 function gen(n){
-  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);WS=1300+d*10;theme=THEMES[((n-1)/35|0)%5];
-  const N=Math.min(170+d*3,600),w=T.map((t,i)=>[10,10,7,5,8,7,3,4,3,1][i]*[1,1,1,1,1,1,1.6,2.5,3.5,5][i]*(.55+Math.min(n,150)/35)**(i/4)),sw=w.reduce((a,b)=>a+b),L=[];
+  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);WS=2000+d*12;if(B.k.length<12)B.k.push(B.k[8],B.k[9]);theme=THEMES[((n-1)/35|0)%5];
+  const N=Math.min(Math.round(WS*WS/12000),1400),w=T.map((t,i)=>[10,10,7,5,8,7,3,4,3,1,1.2,.6][i]*[1,1,1,1,1,1,1.6,2.5,3.5,5,6,8][i]*(.55+Math.min(n,150)/35)**(i/4)),sw=w.reduce((a,b)=>a+b),L=[];
   const dR=v=>{const m=v%G;return Math.min(m,G-m)},nl=Math.floor(WS/G);
   const hx=G*(nl>>1),hy=G*(nl>>1);
   for(let k=0;k<N*4&&L.length<N;k++){
     let q=r()*sw,i=0;while(q>w[i]){q-=w[i];i++}
-    const t=T[i],s=.9+r()*.25,rr=t[0]*s;let x,y,hw=rr,hh=rr,c=B.col?B.col[i]:t[3];
+    const t=T[i],j=i>9?i-2:i,s=.9+r()*.25,rr=t[0]*s*(i>9&&B.free?1.6:1);let x,y,hw=rr,hh=rr,c=B.col?B.col[j]:t[3];
     if(i===3){hw=rr*1.6;hh=rr*.7}
     if((i===5||i===6)&&!B.free){const hor=r()<.5,ln=(1+(r()*(nl-1)|0))*G+(r()-.5)*RW*.5,al=60+r()*(WS-120),a=rr*(i===6?1.9:1.3),b=rr*.6;
       x=hor?al:ln;y=hor?ln:al;hw=hor?a:b;hh=hor?b:a;if(i===5&&!B.col)c=CARC[r()*6|0]}
     else{x=60+r()*(WS-120);y=60+r()*(WS-120);
       if(i>=3&&!B.free){const m=RW/2+Math.max(hw,hh)+4;if(dR(x)<m||dR(y)<m){k++;continue}}}
-    const sp=B.all||(B.sh&&B.sh[i])||t[4];if(sp==='c')hw=hh=Math.max(hw,hh);if(Math.hypot(x-hx,y-hy)<90)continue;
+    const sp=B.all||(B.sh&&B.sh[j])||t[4];if(sp==='c')hw=hh=Math.max(hw,hh);if(Math.hypot(x-hx,y-hy)<90+hw)continue;
     let ok=true;for(const o of L)if(Math.abs(o.x-x)<o.w+hw+2&&Math.abs(o.y-y)<o.h+hh+2){ok=false;break}
-    if(ok)L.push({x,y,w:hw,h:hh,need:t[1],pts:t[2],c,d:shade(c,.6),sh:sp,hz:t[5],f:-1,i,vx:0,vy:0,ms:B.mv&&B.mv[i]?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free})}
+    if(ok)L.push({x,y,w:hw,h:hh,need:t[1],pts:t[2],c,d:shade(c,.6),sh:sp,hz:t[5],f:-1,i,vx:0,vy:0,ms:i<10&&B.mv&&B.mv[i]?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free})}
   // loại vật thể không thể ăn được theo tiến trình tăng kích thước (chỉ ăn được khi nhiều điểm hơn)
   L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;const keep=[];
   for(const o of L){if(o.pts<S){keep.push(o);S+=o.pts}}
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
-  hole={x:hx,y:hy,R:rad(START_PTS-1),tr:rad(START_PTS-1)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
+  hole={x:hx,y:hy,R:rad(START_PTS-1),tr:rad(START_PTS-1)};deco=[];const dn=B.deco?Math.round((B.deco==='s'?320:200)*Math.min(6,(WS/1300)**2)):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
 }
 function play(n){
+  inProg=0;paused=false;$('po').classList.remove('on');$('pz').textContent='⏸';deb=[];shk=0;
   $('game').classList.remove('res');pickSkin();
   lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
@@ -371,7 +410,21 @@ function play(n){
   showHint(B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ! Skin: '+SK[skinI][0],3500);
   startLoop();wakeAudio();
 }
-function toMenu(){running=false;$('game').classList.remove('res');$('game').classList.remove('on');$('menu').classList.add('on');buildMap();music()}
+let paused=false,inProg=0;
+function updRg(){const r=$('rg');r.classList.toggle('on',!!inProg);r.textContent='▶ Quay lại màn '+inProg+' đang chơi'}
+function setPause(v){
+  if(v===paused)return;const g=$('game');
+  if(v&&(!g.classList.contains('on')||won||dead||g.classList.contains('res')||!hole))return;
+  paused=v;$('po').classList.toggle('on',v);$('pz').textContent=v?'▶':'⏸';
+  if(v){running=false;cancelAnimationFrame(raf);js=null}else{startLoop();wakeAudio()}}
+function toMenu(){ // thoát ra bản đồ nhưng GIỮ NGUYÊN màn đang chơi dở (không reset)
+  const g=$('game');inProg=(g.classList.contains('on')&&!won&&!dead&&!g.classList.contains('res')&&hole)?lvl:0;
+  running=false;cancelAnimationFrame(raf);js=null;paused=false;$('po').classList.remove('on');$('pz').textContent='⏸';
+  g.classList.remove('res');g.classList.remove('on');$('menu').classList.add('on');updRg();buildMap();music()}
+function resumeGame(){
+  if(!inProg)return;inProg=0;updRg();$('menu').classList.remove('on');$('game').classList.add('on');
+  resize();try{draw()}catch(e){}setPause(true);wakeAudio()}
+tap($('rg'),resumeGame);tap($('pz'),()=>setPause(!paused));tap($('pc'),()=>setPause(false));tap($('pr'),()=>play(lvl));tap($('pm'),toMenu);
 $('lb').classList.toggle('off',!showLb);tap($('lb'),()=>{showLb=!showLb;save();$('lb').classList.toggle('off',!showLb)});
 tap($('bk'),toMenu);tap($('wm'),toMenu);tap($('rs'),()=>play(lvl));tap($('rp'),()=>play(lvl));
 tap($('nx'),()=>play(Math.min(lvl+1,MAXL)));
@@ -382,6 +435,13 @@ cv.addEventListener('pointermove',e=>{if(js&&js.id===e.pointerId){js.x=e.clientX
 const up=e=>{if(js&&js.id===e.pointerId)js=null};
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 
+function crumble(o,late){ // đổ sập: mảnh vỡ + bụi bị hút vào hố
+  const cap=cfg.deb;if(!cap||deb.length>260)return;const big=o.hz>=14||o.w>=22,ar=Math.sqrt(o.w*o.h),tg=o.tg||hole,
+  n=Math.min(cap,Math.round(big?6+ar/(late?5:3):2+ar/8));
+  for(let i=0;i<n;i++){const a=Math.random()*6.283,v=40+Math.random()*110;
+    deb.push({x:o.x+(Math.random()*2-1)*o.w*.8,y:o.y-Math.random()*Math.min(o.hz,70)+(Math.random()*2-1)*o.h*.4,vx:Math.cos(a)*v*.6,vy:Math.sin(a)*v*.6-25,t:0,life:.7+Math.random()*.6,s:2+Math.random()*Math.min(14,ar*.2+2),r:Math.random()*6,vr:(Math.random()-.5)*14,c:Math.random()<.35?o.d:o.c,tg})}
+  if(big&&cfg.detail)for(let i=0,m=Math.min(cap>>2,10);i<m;i++){const a=Math.random()*6.283;
+    deb.push({x:o.x+(Math.random()*2-1)*o.w,y:o.y-Math.random()*Math.min(o.hz,60),vx:Math.cos(a)*30,vy:Math.sin(a)*30-15,t:0,life:.8+Math.random()*.6,s:ar*(.25+Math.random()*.3),dust:1,c:'#d8d0c4',tg})}}
 function initMove(){for(const o of objs)if(o.ms){let a=Math.random()*6.283;
   if(o.ln)a=o.w>o.h?(Math.random()<.5?0:Math.PI):(Math.random()<.5?1.5708:-1.5708);
   o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}
@@ -485,7 +545,10 @@ function update(dt){
   const R=Math.max(hole.R,hole.tr),lim=R+80;
   for(const o of objs){
     if(o.f>=1)continue;
-    if(o.f>=0){const tg=o.tg||hole;o.f+=dt*3.5*(o.fr||1);o.x+=(tg.x-o.x)*Math.min(1,dt*9);o.y+=(tg.y-o.y)*Math.min(1,dt*9);continue}
+    if(o.f>=0){const tg=o.tg||hole;
+      if(o.big===undefined){o.big=o.hz>=14||o.w>=22;o.dr=tg.x>=o.x?1:-1;crumble(o);if(tg===hole&&o.hz>=40&&cfg.detail)shk=Math.min(9,o.w*.09)}
+      if(o.big&&!o.d2&&o.f>.45){o.d2=1;crumble(o,1)}
+      o.f+=dt*3.5*(o.fr||1)*(o.big?.5:1);const pl=Math.min(1,dt*(o.big?3.5:9));o.x+=(tg.x-o.x)*pl;o.y+=(tg.y-o.y)*pl;continue}
     if(o.ms)moveObj(o,dt);
     if(o.pts>=score)continue;
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
@@ -494,6 +557,8 @@ function update(dt){
   stuckT+=dt;if(stuckT>1){stuckT=0;objs=objs.filter(o=>o.f<1);if(!won){let mn=1e9,anim=false;for(const o of objs){if(o.f>=1)continue;if(o.f>=0){anim=true;break}if(o.pts<mn)mn=o.pts}
     if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=rad(score-1);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
   if(!won)updBots(dt);
+  if(deb.length){for(const d of deb){d.t+=dt;if(d.dust){d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=.97;d.vy*=.97}else{const T2=d.tg||hole,dx=T2.x-d.x,dy=T2.y-d.y,l=Math.hypot(dx,dy)||1,g=(220+700*d.t)*dt;d.vx=d.vx*.97+dx/l*g;d.vy=d.vy*.97+dy/l*g;d.x+=d.vx*dt;d.y+=d.vy*dt;d.r+=d.vr*dt;if(l<(T2.R||20)*.3)d.t=9}}deb=deb.filter(d=>d.t<d.life)}
+  if(shk>0)shk=Math.max(0,shk-dt*28);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
@@ -640,7 +705,10 @@ function mkPat(color){ // ô texture lặp liền mạch: đốm sáng/tối + v
   for(let i=0,n=T2?480:110;i<n;i++){const x=rnd()*S,y=rnd()*S,r=.8+rnd()*2.2;g.fillStyle=rnd()<.5?'rgba(255,255,255,.07)':'rgba(0,0,0,.09)';at(x,y,(X,Y)=>{g.beginPath();g.arc(X,Y,r,0,7);g.fill()})}
   return ctx.createPattern(c,'repeat')}
 function drawObj(o,s){
-  const k=K[B.k[o.i]];ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);if(o.f>0)ctx.rotate(o.f*5);
+  const k=K[B.k[o.i]];ctx.save();ctx.translate(o.x,o.y);
+  if(o.f>0&&o.big){const p=o.f; // nhà/vật lớn: rung -> nghiêng về phía hố đen -> đổ sập, ép lún
+    ctx.translate(Math.sin(TT*70+o.x)*Math.min(3,o.w*.06)*(1-p),0);ctx.rotate((o.dr||1)*Math.min(p*1.8,.95));ctx.scale(s*(1+p*.25),s*(1-p*.5))}
+  else{ctx.scale(s,s);if(o.f>0)ctx.rotate(o.f*5)}
   if(B.deco!=='s'){
     if(cfg.shadow&&o.hz>=16&&!B.free&&o.f<0){const z=Math.min(o.hz,46),w=o.w*.9,h=o.h*.7;ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.moveTo(-w,h);ctx.lineTo(w,h);ctx.lineTo(w+z*.75,h-z*.22);ctx.lineTo(-w+z*.75,h-z*.22);ctx.closePath();ctx.fill()}
     ctx.drawImage(SHD,2-o.w*1.4,3-o.h*1.25,o.w*2.8,o.h*2.5)}
@@ -702,7 +770,8 @@ function drawBot(b){
 function draw(){
   const sx=cv.width/CW,sy=cv.height/CH;
   ctx.setTransform(sx,0,0,sy,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
-  ctx.setTransform(sx*sc,0,0,sy*sc,sx*(CW/2-cam.x*sc),sy*(CH/2-cam.y*sc));
+  const shx=shk?(Math.random()-.5)*shk*2:0,shy=shk?(Math.random()-.5)*shk*2:0;
+  ctx.setTransform(sx*sc,0,0,sy*sc,sx*(CW/2-cam.x*sc+shx),sy*(CH/2-cam.y*sc+shy));
   ctx.fillStyle=gPat;ctx.fillRect(0,0,WS,WS);
   const vx=CW/sc/2+60,vy=CH/sc/2+60;
   if(B.deco){const st=B.deco==='s',dt=cfg.detail,gr=B.deco==='f'&&dt;ctx.strokeStyle=gr?'rgba(205,255,175,.32)':'rgba(255,255,255,.18)';ctx.fillStyle=st?'#fff':'rgba(255,255,255,.14)';ctx.lineWidth=gr?1.7:3;ctx.lineCap='round';
@@ -743,6 +812,9 @@ function draw(){
   for(let k=0;k<nr;k++){const a0=TT*(2-k*.6)+k*2;ctx.globalAlpha=Math.max(.12,.55-k*.12);ctx.lineWidth=Math.max(1.5,R*.045);ctx.beginPath();ctx.arc(hx,hy,R*(.9-k*st),a0,a0+1.6);ctx.stroke()}
   ctx.globalAlpha=1;
   if(hole.pulse>0){ctx.globalAlpha=hole.pulse*.55;ctx.strokeStyle=SK[skinI][3];ctx.lineWidth=Math.max(2,R*.06);ctx.beginPath();ctx.arc(hx,hy,R*(1.05+(1-hole.pulse)*.5),0,7);ctx.stroke();ctx.globalAlpha=1}
+  if(deb.length){for(const d of deb){if(Math.abs(d.x-cam.x)>vx||Math.abs(d.y-cam.y)>vy)continue;const k=1-d.t/d.life;
+    if(d.dust){ctx.globalAlpha=.42*k;ctx.fillStyle=d.c;ctx.beginPath();ctx.arc(d.x,d.y,d.s*(.6+(1-k)*1.4),0,7);ctx.fill()}
+    else{const T2=d.tg||hole,q=Math.min(1,Math.hypot(d.x-T2.x,d.y-T2.y)/((T2.R||20)*1.1)),z=d.s*q;ctx.globalAlpha=Math.min(1,k*1.6);ctx.fillStyle=d.c;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.r);ctx.fillRect(-z/2,-z/2,z,z*.7);ctx.restore()}}ctx.globalAlpha=1}
   for(const b of bots)if(!(b.sp>0)&&Math.abs(b.x-cam.x)<vx+b.R*2&&Math.abs(b.y-cam.y)<vy+b.R*2)drawBot(b);
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
   let lf='';const SF=f=>{if(f!==lf)ctx.font=lf=f};
@@ -781,7 +853,7 @@ let wasRun=false;
 function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}drawGl();$('set').classList.add('on')}
 function closeSet(){$('set').classList.remove('on');if(wasRun&&$('game').classList.contains('on'))startLoop();wasRun=false}
 tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(mt){clearInterval(mt);mt=null}}else{if(running){last=performance.now();nextT=0}resize();wakeAudio()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){setPause(true);if(mt){clearInterval(mt);mt=null}}else{if(running){last=performance.now();nextT=0}resize();wakeAudio()}});
 window.addEventListener('pageshow',wakeAudio);
 window.addEventListener('focus',wakeAudio);
 

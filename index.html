@@ -541,7 +541,7 @@ function update(dt){
     if(l>6){const m=Math.min(l/60,1),sp=(130+hole.R*.9)*m;hole.x+=dx/l*sp*dt;hole.y+=dy/l*sp*dt;
       if(l>90){js.sx+=dx/l*(l-90);js.sy+=dy/l*(l-90)}}}
   hole.x=Math.max(0,Math.min(WS,hole.x));hole.y=Math.max(0,Math.min(WS,hole.y));
-  hole.R+=(hole.tr-hole.R)*Math.min(1,dt*6);if(hole.pulse>0)hole.pulse=Math.max(0,hole.pulse-dt*2.5);
+  hole.R+=(hole.tr-hole.R)*Math.min(1,dt*1.6);if(hole.pulse>0)hole.pulse=Math.max(0,hole.pulse-dt*2.5);
   for(const q of spk){q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt}if(spk.length&&spk[0].t>.5)spk=spk.filter(q=>q.t<.5);
   const R=Math.max(hole.R,hole.tr),lim=R+80;
   for(const o of objs){
@@ -562,8 +562,8 @@ function update(dt){
   if(shk>0)shk=Math.max(0,shk-dt*28);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
-  cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
-  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*1.2);
+  cam.x+=(hole.x-cam.x)*Math.min(1,dt*8);cam.y+=(hole.y-cam.y)*Math.min(1,dt*8);
+  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*.45);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}

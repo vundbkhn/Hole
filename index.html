@@ -261,7 +261,7 @@ function canBeatBots(){const a=[];for(const b of bots)if(b.f<0)a.push(b.P);a.sor
 function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
 function countBiggerBots(){let n=0;for(const x of bots)if(x.f<0&&x.P>score)n++;return n}
 function canBotGrowTo(b,newP){if(newP<=score||b.P>score)return true;return countBiggerBots()<2}
-function botScale(b){if(b.P<=score||score<=0)return 1;const over=(b.P-score)/score;return Math.max(.05,1-(over/.1)*.3)}
+function botScale(b){if(b.P<=score||score<=0)return 1;const over=(b.P-score)/score;return Math.max(.05,1-over*10)}
 function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>=b.P||!canBotGrowTo(b,b.P+o.pts))continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
 let stuckT=0,botT=0,spawnT=0,botsEaten=0,botsTotal=0,botHint=false;
 const BOT_EAT=.40,BOT_MOVE=.65; // tốc độ ăn = 40%, tốc độ di chuyển = 65% so với người chơi
@@ -274,10 +274,10 @@ function botEat(b){
     const er=BOT_EAT*botScale(b);
     o.f=0;o.tg=b;o.fr=er;b.cd=1/(3.5*er);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;setProg();return}
 }
-const SPAWN_EVERY=15,SPAWN_N=5,BOT_MAX=16;
-function spawnBots(){ // mỗi 15 giây: thêm tối đa 5 hố đối thủ (tổng trên map tối đa 16); sau giây thứ 10 mang 10-30% điểm người chơi
+const SPAWN_EVERY=20,SPAWN_N=5,BOT_MAX=16;
+function spawnBots(){ // mỗi 20 giây: thêm tối đa 5 hố đối thủ (tổng trên map tối đa 16); sau giây thứ 10 mang 5-30% điểm người chơi
   const n=Math.min(SPAWN_N,BOT_MAX-bots.length);if(n<=0)return;
-  for(let i=0;i<n;i++){const ratio=botT>10?(.10+Math.random()*.20):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
+  for(let i=0;i<n;i++){const ratio=botT>10?(.05+Math.random()*.25):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
   botsTotal+=n;setProg();const h=$('hint');h.textContent='⚠ '+n+' hố đen đối thủ mới xuất hiện!';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,2500)}
 function nearPrey(b){if(botCap(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
 function botEatBot(b){ // đối thủ ăn lẫn nhau: nhận 100% điểm của hố bị ăn và hố bị ăn biến mất hẳn

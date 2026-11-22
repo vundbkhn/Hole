@@ -320,7 +320,8 @@ const T=[[5,10,1,'#ff8a2b','c',4],[6,12,2,'#ffd166','c',6],[7,14,3,'#3ddc97','c'
 const CARC=['#e63946','#4cc9f0','#f72585','#90be6b','#f9c74f','#ffffff'];
 const THEMES=[['#2d5a3d','#363b48'],['#3b4a6b','#2b3040'],['#6b5a3a','#403d38'],['#5a3a6b','#352c42'],['#3a6b6b','#2b3b3e']];
 const shade=(c,k)=>{const n=parseInt(c.slice(1),16),m=v=>Math.min(255,v*k|0);return `rgb(${m(n>>16)},${m(n>>8&255)},${m(n&255)})`};
-const RK=3.2,rad=S=>16+RK*Math.sqrt(S); // hệ số tăng kích thước hố (đã giảm từ 5)
+const RK=2.2,rad=S=>16+RK*Math.sqrt(S); // hệ số tăng kích thước hố (3.2 -> 2.2: hố lớn chậm hơn)
+const VSPAN=R=>320+5*R,HSP=()=>.45*VSPAN(hole.R); // VSPAN: bề rộng thế giới nhìn thấy theo cạnh ngắn màn hình; HSP: tốc độ hố, tỉ lệ theo khung nhìn để cảm giác tốc độ trên màn hình không đổi khi zoom out
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
 /* ---------- game ---------- */
@@ -332,7 +333,7 @@ const GFX={ultra:{dmin:2,dmax:3,px:8.6e6,fps:120,sq:'high',q:2.4,tex:2,vig:.55,s
   low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'medium',q:1.5,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:0,detail:0,swirl:0,deb:6}};
 let gm='normal';try{const v=localStorage.getItem('bh_gfx');if(GFX[v])gm=v}catch(e){}
 let cfg=GFX[gm];document.body.dataset.gfx=gm;
-const zf=()=>Math.min(CW,CH)/(260+hole.R*1.1); // zoom nhẹ: hố to lên thì map chỉ thu nhỏ rất ít
+const zf=()=>{const m=Math.min(CW,CH);return Math.min(m/VSPAN(hole.R),.15*m/hole.R)}; // zoom out nhiều hơn; chặn để hố không bao giờ chiếm quá ~30% cạnh ngắn màn hình
 function getViewSize(){
   const r=cv.getBoundingClientRect();
   if(r.width>0&&r.height>0)return[r.width,r.height];
@@ -450,7 +451,7 @@ const OBJ_MOVE=.2,OBJ_MOVE1=.1,OBJ_FLEE=1.4;
 function moveObj(o,dt){
   // vật 1 điểm: tốc độ cố định 10% tốc độ người chơi (không tăng tốc khi chạy trốn)
   // vật >1 điểm: 20%, khi chạy trốn nhanh gấp 1.4 lần
-  const PS=130+hole.R*.9,SP=PS*(o.pts<=1?OBJ_MOVE1:OBJ_MOVE),FS=o.pts<=1?SP:SP*OBJ_FLEE;
+  const PS=HSP(),SP=PS*(o.pts<=1?OBJ_MOVE1:OBJ_MOVE),FS=o.pts<=1?SP:SP*OBJ_FLEE;
   if(!o.ln){const dx=o.x-hole.x,dy=o.y-hole.y,l=Math.hypot(dx,dy);
     if(o.pts<score&&l<hole.R*2.2&&l>1){o.vx=dx/l;o.vy=dy/l;o.tm=1.5;o.fl=true}
     else{o.tm-=dt;if(o.tm<=0){o.tm=2+Math.random()*4;o.fl=false;const a=Math.random()*6.283;o.vx=Math.cos(a);o.vy=Math.sin(a)}}}
@@ -519,7 +520,7 @@ function updBots(dt){
     if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
     if(b.sp>0){b.sp-=dt;continue}
     if(b.cd>0)b.cd-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
-    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE*botScale(b);
+    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=HSP()*BOT_MOVE*botScale(b);
     b.fdT=(b.fdT||0)-dt;if(b.fdT<=0){b.fdT=.4+Math.random()*.2;b.fd=nearFood(b)}const fd=b.fd&&b.fd.f<0?b.fd:null; // ưu tiên ăn vật thể; chỉ săn người chơi khi hết đồ ăn gần, đã qua giai đoạn đầu hoặc người chơi ở rất gần
     if(score>b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
     else if(b.P>score&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}
@@ -538,7 +539,7 @@ function updBots(dt){
 function update(dt){
   if(dead){hole.R=Math.max(.5,hole.R*(1-Math.min(1,dt*3)));for(const f of fx)f.t+=dt;updBots(dt);return}
   if(js){const dx=js.x-js.sx,dy=js.y-js.sy,l=Math.hypot(dx,dy);
-    if(l>6){const m=Math.min(l/60,1),sp=(130+hole.R*.9)*m;hole.x+=dx/l*sp*dt;hole.y+=dy/l*sp*dt;
+    if(l>6){const m=Math.min(l/60,1),sp=HSP()*m;hole.x+=dx/l*sp*dt;hole.y+=dy/l*sp*dt;
       if(l>90){js.sx+=dx/l*(l-90);js.sy+=dy/l*(l-90)}}}
   hole.x=Math.max(0,Math.min(WS,hole.x));hole.y=Math.max(0,Math.min(WS,hole.y));
   hole.R+=(hole.tr-hole.R)*Math.min(1,dt*1.6);if(hole.pulse>0)hole.pulse=Math.max(0,hole.pulse-dt*2.5);
@@ -563,7 +564,7 @@ function update(dt){
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*8);cam.y+=(hole.y-cam.y)*Math.min(1,dt*8);
-  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*.25);
+  const ts=zf();sc+=(ts-sc)*(1-Math.exp(-dt*3)); // theo kịp bán kính hố (trước đây 0.25 quá chậm -> hố phình che màn hình)
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}
@@ -757,7 +758,7 @@ function skinSprite(){let o=skinCache[skinI];if(o)return o;const k=SK[skinI];
   if(cfg.swirl)c.sw=mkSwirl(k[4]);
   return skinCache[skinI]=c}
 function botSprite(st){return botSpr[st]||(botSpr[st]=mkSprite(st===2?'#ff4d5e':st===1?'#ffd166':'#4dff9a','#2a0f18','',''))}
-const holeSc=R=>Math.round(Math.pow(Math.max(0,(R-16)/3.4),2));
+const holeSc=R=>Math.round(Math.pow(Math.max(0,(R-16)/RK),2));
 function drawBot(b){
   const sm=b.f>=0?1-b.f:1,R=b.R*sm,hx=b.x,hy=b.y;if(R<1)return;
   const st=b.P>score?2:(b.P===score?1:0),col=st===2?'#ff4d5e':(st===1?'#ffd166':'#4dff9a');
@@ -773,7 +774,7 @@ function draw(){
   ctx.setTransform(sx,0,0,sy,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
   const shx=0,shy=0;
   ctx.setTransform(sx*sc,0,0,sy*sc,sx*(CW/2-cam.x*sc+shx),sy*(CH/2-cam.y*sc+shy));
-  ctx.fillStyle=gPat;ctx.fillRect(0,0,WS,WS);
+  {const hx0=Math.max(0,cam.x-CW/sc/2-4),hy0=Math.max(0,cam.y-CH/sc/2-4),hx1=Math.min(WS,cam.x+CW/sc/2+4),hy1=Math.min(WS,cam.y+CH/sc/2+4);ctx.fillStyle=gPat;ctx.fillRect(hx0,hy0,hx1-hx0,hy1-hy0)} // chỉ tô phần nền đang nhìn thấy
   const vx=CW/sc/2+60,vy=CH/sc/2+60;
   if(B.deco){const st=B.deco==='s',dt=cfg.detail,gr=B.deco==='f'&&dt;ctx.strokeStyle=gr?'rgba(205,255,175,.32)':'rgba(255,255,255,.18)';ctx.fillStyle=st?'#fff':'rgba(255,255,255,.14)';ctx.lineWidth=gr?1.7:3;ctx.lineCap='round';
     for(const q of deco){if(Math.abs(q.x-cam.x)>vx||Math.abs(q.y-cam.y)>vy)continue;
@@ -804,7 +805,7 @@ function draw(){
   for(const o of objs)if(o.f>=0&&o.f<1&&vis(o))drawObj(o,1-o.f);
   // hố đen
   const R=hole.R,hx=hole.x,hy=hole.y;
-  if(cfg.light)ctx.drawImage(LIGHT,hx-R*5,hy-R*5,R*10,R*10);
+  if(cfg.light)ctx.drawImage(LIGHT,hx-R*3.4,hy-R*3.4,R*6.8,R*6.8);
   const hs=skinSprite();if(cfg.shadow)ctx.drawImage(PIT,hx-R*2.1,hy-R*2.1,R*4.2,R*4.2);
   ctx.drawImage(hs,hx-R*1.6,hy-R*1.6,R*3.2,R*3.2);ctx.lineCap='round';
   if(cfg.swirl&&hs.sw){ctx.save();ctx.translate(hx,hy);ctx.rotate(TT*.9);ctx.globalAlpha=.6;ctx.drawImage(hs.sw,-R*1.6,-R*1.6,R*3.2,R*3.2);ctx.restore();ctx.globalAlpha=1}
@@ -817,10 +818,11 @@ function draw(){
     if(d.dust){ctx.globalAlpha=.42*k;ctx.fillStyle=d.c;ctx.beginPath();ctx.arc(d.x,d.y,d.s*(.6+(1-k)*1.4),0,7);ctx.fill()}
     else{const T2=d.tg||hole,q=Math.min(1,Math.hypot(d.x-T2.x,d.y-T2.y)/((T2.R||20)*1.1)),z=d.s*q;ctx.globalAlpha=Math.min(1,k*1.6);ctx.fillStyle=d.c;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.r);ctx.fillRect(-z/2,-z/2,z,z*.7);ctx.restore()}}ctx.globalAlpha=1}
   for(const b of bots)if(!(b.sp>0)&&Math.abs(b.x-cam.x)<vx+b.R*2&&Math.abs(b.y-cam.y)<vy+b.R*2)drawBot(b);
-  for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
+  const tiny=3.2/sc,mnw=1.5/sc; // LOD: vật thể < ~3px trên màn hình vẽ thành chấm màu thay vì cả hình phức tạp
+  for(const o of objs)if(o.f<0&&vis(o)){if(o.w<tiny&&o.h<tiny){const w=Math.max(o.w,mnw),h=Math.max(o.h,mnw);ctx.fillStyle=o.c;ctx.fillRect(o.x-w,o.y-h,w*2,h*2)}else drawObj(o,1)}
   let lf='';const SF=f=>{if(f!==lf)ctx.font=lf=f};
   if(showLb){ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';
-    for(const o of objs){if(o.f>=0||!vis(o))continue;const fs=Math.max(8/sc,Math.min(13/sc,o.w*1.5+8)),y=o.y-o.h-o.hz*.9-fs*.7;
+    let lc=0;for(const o of objs){if(o.f>=0||o.w*sc<4||lc>=200||!vis(o))continue;lc++;const fs=Math.max(8,Math.min(13,Math.round((o.w*1.5+8)*sc)))/sc,y=o.y-o.h-o.hz*.9-fs*.7;
       SF('bold '+fs+'px sans-serif');ctx.lineWidth=fs*.3;ctx.fillStyle=o.pts<score?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
     for(const b of bots){if(b.sp>0||b.f>=0||Math.abs(b.x-cam.x)>vx+b.R||Math.abs(b.y-cam.y)>vy+b.R)continue;const fs=Math.max(10/sc,b.R*.4),t=''+b.P,y=b.y+b.R*.5;
       SF('bold '+fs+'px sans-serif');ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,b.x,y);ctx.fillText(t,b.x,y)}

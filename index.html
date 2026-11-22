@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Hố Đen Thành Phố</title>
+<title>Hố Đen</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" id="ati" href="icon.svg">
 <link rel="manifest" href="manifest.json">
@@ -86,8 +86,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 const $=id=>document.getElementById(id);
 const MAXL=10000,START_PTS=5;
 let done=0,musicOn=true,showLb=true;
-try{done=+localStorage.getItem('bh_done')||0;musicOn=localStorage.getItem('bh_music')!=='0';showLb=localStorage.getItem('bh_lb')!=='0'}catch(e){}
-const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_music',musicOn?1:0);localStorage.setItem('bh_lb',showLb?1:0)}catch(e){}};
+try{done=+localStorage.getItem('bh_done')||0;showLb=localStorage.getItem('bh_lb')!=='0'}catch(e){}
+const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_lb',showLb?1:0)}catch(e){}};
 
 /* ---------- icon PNG cho iOS ---------- */
 (function(){const s=180,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d');
@@ -96,27 +96,113 @@ g.fillStyle='#4aa3df';g.fillRect(25,115,21,50);g.fillStyle='#f2c14e';g.fillRect(
 gr=g.createRadialGradient(90,88,30,90,88,44);gr.addColorStop(0,'#000');gr.addColorStop(1,'#8a5cff');g.fillStyle=gr;g.beginPath();g.arc(90,88,44,0,7);g.fill();
 g.fillStyle='#000';g.beginPath();g.arc(90,88,14,0,7);g.fill();$('ati').href=c.toDataURL()})();
 
-/* ---------- âm thanh ---------- */
-let AC=null,mt=null,step=0;
-function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
-function tone(f,t,d,type,v){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}
+/* ---------- âm thanh (hỗ trợ tốt iPhone / iOS Safari) ---------- */
+let AC=null,mt=null,step=0,auUnlocked=false;
+function unlockIOS(){
+  if(auUnlocked)return;
+  try{
+    const a=document.createElement('audio');
+    a.setAttribute('playsinline','');
+    a.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    a.volume=0.01;
+    const p=a.play();
+    if(p&&p.then)p.then(()=>{a.pause();auUnlocked=true}).catch(()=>{});
+    else auUnlocked=true;
+  }catch(e){}
+}
+function ac(force){
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return null;
+  if(!AC||AC.state==='closed'){try{AC=new Ctx()}catch(e){return null}}
+  if(AC.state!=='running'){
+    try{
+      const p=AC.resume();
+      if(p&&p.catch)p.catch(()=>{});
+      if(force){
+        const b=AC.createBuffer(1,1,22050),s=AC.createBufferSource();
+        s.buffer=b;s.connect(AC.destination);s.start(0);
+      }
+    }catch(e){}
+  }
+  return AC;
+}
+function tone(f,t,d,type,v){
+  if(!AC||AC.state!=='running')return;
+  try{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(v,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(AC.destination);
+    o.onended=()=>{try{o.disconnect();g.disconnect()}catch(e){}};
+    o.start(t);o.stop(t+d+.02);
+  }catch(e){}
+}
 const hz=n=>110*Math.pow(2,n/12);
-function tick(){if(!AC||!musicOn)return;const t=AC.currentTime+.05,roots=[0,5,3,7],r=roots[(step>>3)&3],pat=[0,3,7,12,10,7,3,7],sc=[0,3,5,7,10,12];
-if(step%2===0)tone(hz(r-12),t,.4,'triangle',.16);
-tone(hz(r+12+pat[step%8]),t,.22,'sine',.07);
-if(step%8===4)tone(hz(r+24+sc[(step*3)%6]),t,.5,'sine',.05);
-step++}
-function music(){if(!ac())return;if(musicOn&&!mt)mt=setInterval(tick,240);if(!musicOn&&mt){clearInterval(mt);mt=null}}
-function setMusic(v){musicOn=v;save();['mm','gm'].forEach(i=>$(i).classList.toggle('off',!v));music()}
-function sfx(k){if(!AC)return;const t=AC.currentTime;tone(300+k*45,t,.14,'sine',.18);tone(150+k*20,t,.2,'triangle',.12)}
-function jingle(ok){if(!ac()||!musicOn)return;const t0=AC.currentTime+.1;
-  if(ok){const n=[12,16,19,24,19,24,28,31],d=.14;n.forEach((x,i)=>{tone(hz(x),t0+i*d,.3,'square',.08);tone(hz(x-12),t0+i*d,.3,'triangle',.1)});
-    let t=t0+n.length*d+.05;[0,4,7,12,16].forEach(x=>tone(hz(x+12),t,.9,'triangle',.1));[24,28,31].forEach(x=>tone(hz(x),t,.9,'sine',.06));
-    t+=.95;[7,12,16,19,24].forEach(x=>tone(hz(x+12),t,1.3,'triangle',.1));[28,31,36].forEach(x=>tone(hz(x),t,1.3,'sine',.06))}
-  else{const n=[19,18,17,12],ds=[.5,.5,.5,1.3];let t=t0;n.forEach((x,i)=>{tone(hz(x),t,ds[i]+.15,'triangle',.15);tone(hz(x-12),t,ds[i]+.15,'sine',.1);t+=ds[i]})}}
-document.addEventListener('pointerdown',()=>{ac();music()},{passive:true});
-['mm','gm'].forEach(i=>$(i).onclick=()=>setMusic(!musicOn));
-setMusic(musicOn);
+function tick(){
+  if(!musicOn)return;
+  if(!AC||AC.state!=='running'){ac();return}
+  const t=AC.currentTime+.05,roots=[0,5,3,7],r=roots[(step>>3)&3],pat=[0,3,7,12,10,7,3,7],sc=[0,3,5,7,10,12];
+  if(step%2===0)tone(hz(r-12),t,.4,'triangle',.16);
+  tone(hz(r+12+pat[step%8]),t,.22,'sine',.07);
+  if(step%8===4)tone(hz(r+24+sc[(step*3)%6]),t,.5,'sine',.05);
+  step++;
+}
+function music(){
+  ac();
+  if(musicOn&&!mt)mt=setInterval(tick,240);
+  if(!musicOn&&mt){clearInterval(mt);mt=null}
+}
+function setMusic(v){
+  musicOn=v;
+  ['mm','gm'].forEach(i=>$(i).classList.toggle('off',!v));
+  if(v){unlockIOS();ac(true)}
+  music();
+}
+function sfx(k){
+  if(!musicOn)return;
+  ac();
+  if(!AC||AC.state!=='running')return;
+  const t=AC.currentTime;
+  tone(300+k*45,t,.14,'sine',.18);
+  tone(150+k*20,t,.2,'triangle',.12);
+}
+function jingle(ok){
+  if(!musicOn)return;
+  ac(true);
+  if(!AC||AC.state!=='running')return;
+  const t0=AC.currentTime+.1;
+  if(ok){
+    const n=[12,16,19,24,19,24,28,31],d=.14;
+    n.forEach((x,i)=>{tone(hz(x),t0+i*d,.3,'square',.08);tone(hz(x-12),t0+i*d,.3,'triangle',.1)});
+    let t=t0+n.length*d+.05;
+    [0,4,7,12,16].forEach(x=>tone(hz(x+12),t,.9,'triangle',.1));
+    [24,28,31].forEach(x=>tone(hz(x),t,.9,'sine',.06));
+    t+=.95;
+    [7,12,16,19,24].forEach(x=>tone(hz(x+12),t,1.3,'triangle',.1));
+    [28,31,36].forEach(x=>tone(hz(x),t,1.3,'sine',.06));
+  }else{
+    const n=[19,18,17,12],ds=[.5,.5,.5,1.3];let t=t0;
+    n.forEach((x,i)=>{tone(hz(x),t,ds[i]+.15,'triangle',.15);tone(hz(x-12),t,ds[i]+.15,'sine',.1);t+=ds[i]});
+  }
+}
+function wakeAudio(){
+  unlockIOS();
+  const prev=AC?AC.state:'';
+  ac(true);
+  if(musicOn&&!$('#win').classList.contains('on'))music();
+  if(AC&&AC.state!=='running'&&prev==='interrupted'){
+    setTimeout(()=>{
+      if(AC&&AC.state!=='running'){
+        try{AC.close()}catch(e){}
+        AC=null;ac(true);if(musicOn)music();
+      }
+    },180);
+  }
+}
+['pointerdown','touchstart','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,wakeAudio,{passive:true}));
+['mm','gm'].forEach(i=>$(i).onclick=e=>{e.stopPropagation();setMusic(!musicOn)});
+setMusic(true);
 
 /* ---------- chủ đề map (đổi lần lượt, mỗi 5 màn) ---------- */
 const BIO=[
@@ -208,7 +294,7 @@ function play(n){
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   const h=$('hint');h.textContent=B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ! Skin: '+SK[skinI][0];h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3500);
-  startLoop();music();
+  startLoop();wakeAudio();
 }
 function toMenu(){running=false;$('game').classList.remove('on');$('menu').classList.add('on');buildMap();music()}
 $('lb').classList.toggle('off',!showLb);$('lb').onclick=()=>{showLb=!showLb;save();$('lb').classList.toggle('off',!showLb)};
@@ -344,7 +430,7 @@ function update(dt){
 function win(){
   if(lvl>done){done=lvl;save()}
   const last=lvl>=MAXL;$('wt').textContent=last?'Bạn đã phá đảo!':'Hoàn thành màn '+lvl;
-  $('wd').textContent='Mọi thứ đã bị nuốt chửng';$('nx').style.display=last?'none':'';
+  $('wd').textContent='Cả thành phố đã bị nuốt chửng';$('nx').style.display=last?'none':'';
   setTimeout(()=>showRes(true),500);
 }
 const E=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,Math.abs(a),Math.abs(b),0,0,7)},
@@ -496,7 +582,7 @@ function mkSprite(glow,edge,deco,rimC){ // sprite 320x320, bán kính thân = 10
     if(deco==='spokes'){g.lineWidth=3;for(let k=0;k<12;k++){const a=k*Math.PI/6;g.beginPath();g.moveTo(Math.cos(a)*45,Math.sin(a)*45);g.lineTo(Math.cos(a)*96,Math.sin(a)*96);g.stroke()}}
     else if(deco==='dots'){g.globalAlpha=.65;for(let k=0;k<18;k++){const a=k*2.399,r=35+(k*37%58);g.beginPath();g.arc(Math.cos(a)*r,Math.sin(a)*r,2+(k%3),0,7);g.fill()}}
     else if(deco==='stripes'){g.lineWidth=5;for(const r of[50,68,86]){g.beginPath();g.arc(0,0,r,0,7);g.stroke()}}
-    else if(deco==='spiral'){g.lineWidth=4;g.beginPath();for(let t=0;t<14;t+=.15){const r=14+t*6;g.lineTo(Math.cos(t)*r,Math.sin(t)*r)}g.stroke()}
+    else if(deco==='spiral'){g.lineWidth=4;for(let t=0;t<14;t+=.15){const r=14+t*6;g.lineTo(Math.cos(t)*r,Math.sin(t)*r)}g.stroke()}
     else if(deco==='sparkle'){g.globalAlpha=.7;g.lineWidth=3;for(let k=0;k<6;k++){const a=k*1.9,r=50+(k*23%40),x=Math.cos(a)*r,y=Math.sin(a)*r,q=7+(k%3)*2;g.beginPath();g.moveTo(x-q,y);g.lineTo(x+q,y);g.moveTo(x,y-q);g.lineTo(x,y+q);g.stroke()}}
     g.restore()}
   gr=g.createRadialGradient(C-R*.38,C-R*.45,0,C-R*.38,C-R*.45,R*.6);gr.addColorStop(0,'rgba(255,255,255,.24)');gr.addColorStop(1,'rgba(255,255,255,0)');
@@ -581,7 +667,9 @@ let wasRun=false;
 function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}drawGl();$('set').classList.add('on')}
 function closeSet(){$('set').classList.remove('on');if(wasRun&&$('game').classList.contains('on'))startLoop();wasRun=false}
 $('st').onclick=$('gs').onclick=openSet;$('sx').onclick=closeSet;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(mt){clearInterval(mt);mt=null}if(AC&&AC.state==='running'&&AC.suspend)AC.suspend().catch(()=>{})}else if(running){last=performance.now();music()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(mt){clearInterval(mt);mt=null}}else{if(running)last=performance.now();wakeAudio()}});
+window.addEventListener('pageshow',wakeAudio);
+window.addEventListener('focus',wakeAudio);
 
 buildMap();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{off=true;$('prog').textContent+=' · chơi offline được'}).catch(()=>{})}

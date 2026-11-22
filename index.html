@@ -238,11 +238,16 @@ function moveObj(o,dt){
   if(o.x<m){o.x=m;o.vx=Math.abs(o.vx)}else if(o.x>WS-m){o.x=WS-m;o.vx=-Math.abs(o.vx)}
   if(o.y<m){o.y=m;o.vy=Math.abs(o.vy)}else if(o.y>WS-m){o.y=WS-m;o.vy=-Math.abs(o.vy)}
 }
-function newBot(far){
-  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
+function newBot(far,fixedP){
+  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=fixedP!=null?fixedP:Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
   return{x,y,R,P,tr:R,cd:0,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
-function initBots(){botT=0;bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5}
+function initBots(){
+  botT=0;bots=[];
+  // 3 bot khởi đầu cùng người chơi: 1 bot 2 điểm, 1 bot 3 điểm, 1 bot 1 điểm
+  for(const p of[2,3,1])bots.push(newBot(450,p));
+  botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5;
+}
 function confetti(){const c=$('cf'),n=cfg.fps>60?60:(cfg.q<1.2?14:36),cs=['#ff4d5e','#ffd166','#4dff9a','#4cc9f0','#b79bff','#ff8ad8'];let h='';
   for(let i=0;i<n;i++)h+='<i style="left:'+(Math.random()*100)+'%;background:'+cs[i%6]+';animation-duration:'+(2.2+Math.random()*2.5)+'s;animation-delay:'+(Math.random()*1.2)+'s"></i>';
   c.innerHTML=h;setTimeout(()=>{c.innerHTML=''},6500)}
@@ -254,32 +259,35 @@ function lose(t,d){dead=true;$('wt').textContent=t||'Bạn bị nuốt!';$('wd')
 function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
 function canBeatBots(){const a=[];for(const b of bots)if(b.f<0)a.push(b.P);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
 function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
-function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>=b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
+function countBiggerBots(){let n=0;for(const x of bots)if(x.f<0&&x.P>score)n++;return n}
+function canBotGrowTo(b,newP){if(newP<=score||b.P>score)return true;return countBiggerBots()<2}
+function botScale(b){if(b.P<=score||score<=0)return 1;const over=(b.P-score)/score;return Math.max(.05,1-(over/.1)*.3)}
+function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>=b.P||!canBotGrowTo(b,b.P+o.pts))continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
 let stuckT=0,botT=0,spawnT=0,botsEaten=0,botsTotal=0,botHint=false;
-const BOT_EAT=.25,BOT_MOVE=.5; // tốc độ ăn = 25%, tốc độ di chuyển = 50% so với người chơi
-const HUNT_T=30,HUNT_K=.15; // 30 giây đầu: chỉ hố đối thủ có điểm <15% điểm người chơi mới được phép ăn nhau
+const BOT_EAT=.40,BOT_MOVE=.65; // tốc độ ăn = 40%, tốc độ di chuyển = 65% so với người chơi
 const setProg=()=>{$('fill').style.width=((eaten+botsEaten)/(total+botsTotal)*100)+'%'};
 function botEat(b){
   if(b.cd>0||botCap(b))return;
-  for(const o of objs){if(o.f>=0||o.pts>=b.P||o.bk>TT)continue;
+  for(const o of objs){if(o.f>=0||o.pts>=b.P||o.bk>TT||!canBotGrowTo(b,b.P+o.pts))continue;
     if(Math.abs(o.x-b.x)>b.R||Math.abs(o.y-b.y)>b.R||Math.hypot(o.x-b.x,o.y-b.y)>=b.R)continue;
     if(!canSpare(o)){o.bk=TT+2;continue}
-    o.f=0;o.tg=b;o.fr=BOT_EAT;b.cd=1/(3.5*BOT_EAT);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;setProg();return}
+    const er=BOT_EAT*botScale(b);
+    o.f=0;o.tg=b;o.fr=er;b.cd=1/(3.5*er);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;setProg();return}
 }
-const SPAWN_EVERY=10,SPAWN_N=5,BOT_MAX=16;
-function spawnBots(){ // mỗi 10 giây: thêm tối đa 5 hố đối thủ (tổng trên map tối đa 16), điểm = 5-10% điểm người chơi
+const SPAWN_EVERY=15,SPAWN_N=5,BOT_MAX=16;
+function spawnBots(){ // mỗi 15 giây: thêm tối đa 5 hố đối thủ (tổng trên map tối đa 16); sau giây thứ 10 mang 10-30% điểm người chơi
   const n=Math.min(SPAWN_N,BOT_MAX-bots.length);if(n<=0)return;
-  for(let i=0;i<n;i++){const b=newBot(450),P=Math.max(1,Math.round(score*(.05+Math.random()*.05)));b.P=P;b.R=b.tr=rad(P-1);bots.push(b)}
+  for(let i=0;i<n;i++){const ratio=botT>10?(.10+Math.random()*.20):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
   botsTotal+=n;setProg();const h=$('hint');h.textContent='⚠ '+n+' hố đen đối thủ mới xuất hiện!';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,2500)}
-const botMayHunt=b=>botT>=HUNT_T||b.P<HUNT_K*score; // 30s đầu: chỉ hố có điểm <15% hố người chơi mới được ăn nhau
-function nearPrey(b){if(!botMayHunt(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P)continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
+function nearPrey(b){if(botCap(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
 function botEatBot(b){ // đối thủ ăn lẫn nhau: nhận 100% điểm của hố bị ăn và hố bị ăn biến mất hẳn
-  if(b.cd>0||botCap(b)||!botMayHunt(b))return;const need=(b.fd&&b.fd.f<0)?.4:.8;
-  for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P)continue;
+  if(b.cd>0||botCap(b))return;const need=(b.fd&&b.fd.f<0)?.4:.8;
+  for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;
     const g=c.P;
     if(Math.hypot(c.x-b.x,c.y-b.y)>=b.R*need)continue;
+    const er=BOT_EAT*botScale(b);
     c.f=0;c.eb=b;for(const o of objs)if(o.tg===c)o.tg=b;
-    b.cd=1/(3.5*BOT_EAT);b.P+=g;b.tr=rad(b.P-1);return}
+    b.cd=1/(3.5*er);b.P+=g;b.tr=rad(b.P-1);return}
 }
 function updBots(dt){
   if(grace>0)grace-=dt;botT+=dt;
@@ -288,7 +296,7 @@ function updBots(dt){
     if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
     if(b.sp>0){b.sp-=dt;continue}
     if(b.cd>0)b.cd-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
-    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE;
+    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE*botScale(b);
     b.fdT=(b.fdT||0)-dt;if(b.fdT<=0){b.fdT=.4+Math.random()*.2;b.fd=nearFood(b)}const fd=b.fd&&b.fd.f<0?b.fd:null; // ưu tiên ăn vật thể; chỉ săn người chơi khi hết đồ ăn gần, đã qua giai đoạn đầu hoặc người chơi ở rất gần
     if(score>b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
     else if(b.P>score&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}

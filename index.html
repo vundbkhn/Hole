@@ -332,6 +332,7 @@ const GFX={ultra:{dmin:2,dmax:3,px:8.6e6,fps:120,sq:'high',q:2.4,tex:2,vig:.55,s
   low:{dmin:1,dmax:1.5,px:1e12,fps:60,sq:'medium',q:1.5,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:0,detail:0,swirl:0,deb:6}};
 let gm='normal';try{const v=localStorage.getItem('bh_gfx');if(GFX[v])gm=v}catch(e){}
 let cfg=GFX[gm];document.body.dataset.gfx=gm;
+const zf=()=>Math.min(CW,CH)/(260+hole.R*3.2); // zoom nhẹ: hố to lên thì map chỉ thu nhỏ rất ít
 function getViewSize(){
   const r=cv.getBoundingClientRect();
   if(r.width>0&&r.height>0)return[r.width,r.height];
@@ -347,7 +348,7 @@ function syncCanvasSize(w,h){
   if(ch)cv.width=bw,cv.height=bh;
   ctx.imageSmoothingQuality=cfg.sq;
   if(cfg.vig){vig=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.38,CW/2,CH/2,Math.hypot(CW,CH)*.55);vig.addColorStop(0,'rgba(8,2,22,0)');vig.addColorStop(1,'rgba(8,2,22,'+cfg.vig+')')}else vig=null;
-  if(hole)sc=Math.min(CW,CH)/(260+hole.R*6);
+  if(hole)sc=zf();
   return ch;
 }
 let mapH=0;
@@ -405,7 +406,7 @@ function play(n){
   lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
-  resize();sc=Math.min(CW,CH)/(260+hole.R*6);
+  resize();sc=zf();
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   showHint(B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ! Skin: '+SK[skinI][0],3500);
   startLoop();wakeAudio();
@@ -546,7 +547,7 @@ function update(dt){
   for(const o of objs){
     if(o.f>=1)continue;
     if(o.f>=0){const tg=o.tg||hole;
-      if(o.big===undefined){o.big=o.hz>=14||o.w>=22;o.dr=tg.x>=o.x?1:-1;crumble(o);if(tg===hole&&o.hz>=40&&cfg.detail)shk=Math.min(9,o.w*.09)}
+      if(o.big===undefined){o.big=o.hz>=14||o.w>=22;o.dr=tg.x>=o.x?1:-1;crumble(o);}
       if(o.big&&!o.d2&&o.f>.45){o.d2=1;crumble(o,1)}
       o.f+=dt*3.5*(o.fr||1)*(o.big?.5:1);const pl=Math.min(1,dt*(o.big?3.5:9));o.x+=(tg.x-o.x)*pl;o.y+=(tg.y-o.y)*pl;continue}
     if(o.ms)moveObj(o,dt);
@@ -562,7 +563,7 @@ function update(dt){
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
-  const ts=Math.min(CW,CH)/(260+hole.R*6);sc+=(ts-sc)*Math.min(1,dt*3);
+  const ts=zf();sc+=(ts-sc)*Math.min(1,dt*1.2);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}
@@ -770,7 +771,7 @@ function drawBot(b){
 function draw(){
   const sx=cv.width/CW,sy=cv.height/CH;
   ctx.setTransform(sx,0,0,sy,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
-  const shx=shk?(Math.random()-.5)*shk*2:0,shy=shk?(Math.random()-.5)*shk*2:0;
+  const shx=0,shy=0;
   ctx.setTransform(sx*sc,0,0,sy*sc,sx*(CW/2-cam.x*sc+shx),sy*(CH/2-cam.y*sc+shy));
   ctx.fillStyle=gPat;ctx.fillRect(0,0,WS,WS);
   const vx=CW/sc/2+60,vy=CH/sc/2+60;

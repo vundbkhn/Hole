@@ -45,6 +45,20 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #win h2{font-size:30px;margin:0}
 .btn{min-width:200px;padding:13px 22px;border-radius:26px;border:0;background:#8a5cff;color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit}
 .btn.alt{background:#2c1b57}
+#win.w{background:radial-gradient(ellipse at 50% 30%,rgba(120,70,220,.93),rgba(10,5,25,.93) 75%)}
+#win.l{background:rgba(44,44,50,.95)}
+#wi{font-size:84px;line-height:1}
+#ws{font-size:32px;letter-spacing:6px;min-height:0}
+#win.w #wi{animation:bn .9s ease-in-out infinite alternate;filter:drop-shadow(0 0 18px #ffd166)}
+@keyframes bn{from{transform:translateY(0) scale(1)}to{transform:translateY(-12px) scale(1.12)}}
+#win.l #wi{filter:grayscale(1);animation:sd 2.2s ease-in-out infinite alternate}
+@keyframes sd{from{transform:translateY(0)}to{transform:translateY(8px)}}
+#win.w h2{color:#ffe27a;text-shadow:0 0 18px rgba(255,210,90,.6)}
+#win.l h2{color:#c9c9d1}#win.l #wd{color:#aaa}
+#win.l .btn{background:#6a6a72}#win.l .btn.alt{background:#45454c}
+#cf{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+#cf i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;animation:cfl linear forwards}
+@keyframes cfl{to{transform:translateY(110vh) rotate(720deg)}}
 #set{position:fixed;inset:0;z-index:30;background:rgba(10,5,25,.88);display:none;align-items:center;justify-content:center;padding:20px}
 #set.on{display:flex}
 #set .box{width:100%;max-width:420px;max-height:100%;overflow:auto}
@@ -65,7 +79,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <canvas id="cv"></canvas>
   <div id="hud"><div class="ib" id="bk">☰</div><div id="lv"></div><div id="bar"><div id="fill"></div></div><div class="ib" id="lb" title="Hiện điểm số">#</div><div class="ib" id="gm">♪</div><div class="ib" id="gs" title="Cài đặt đồ hoạ">⚙</div><div class="ib" id="rs">↻</div></div>
   <div id="hint">Chạm giữ và kéo để di chuyển hố đen</div>
-  <div id="win"><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div>
+  <div id="win"><div id="cf"></div><div id="wi"></div><div id="ws"></div><h2 id="wt"></h2><div id="wd" style="opacity:.8"></div><button class="btn" id="nx">Màn tiếp theo</button><button class="btn alt" id="rp">Chơi lại</button><button class="btn alt" id="wm">Bản đồ</button></div>
 </div>
 <div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div><button class="btn" id="sx" style="width:100%">Đóng</button></div></div>
 <script>
@@ -95,6 +109,11 @@ step++}
 function music(){if(!ac())return;if(musicOn&&!mt)mt=setInterval(tick,240);if(!musicOn&&mt){clearInterval(mt);mt=null}}
 function setMusic(v){musicOn=v;save();['mm','gm'].forEach(i=>$(i).classList.toggle('off',!v));music()}
 function sfx(k){if(!AC)return;const t=AC.currentTime;tone(300+k*45,t,.14,'sine',.18);tone(150+k*20,t,.2,'triangle',.12)}
+function jingle(ok){if(!ac()||!musicOn)return;const t0=AC.currentTime+.1;
+  if(ok){const n=[12,16,19,24,19,24,28,31],d=.14;n.forEach((x,i)=>{tone(hz(x),t0+i*d,.3,'square',.08);tone(hz(x-12),t0+i*d,.3,'triangle',.1)});
+    let t=t0+n.length*d+.05;[0,4,7,12,16].forEach(x=>tone(hz(x+12),t,.9,'triangle',.1));[24,28,31].forEach(x=>tone(hz(x),t,.9,'sine',.06));
+    t+=.95;[7,12,16,19,24].forEach(x=>tone(hz(x+12),t,1.3,'triangle',.1));[28,31,36].forEach(x=>tone(hz(x),t,1.3,'sine',.06))}
+  else{const n=[19,18,17,12],ds=[.5,.5,.5,1.3];let t=t0;n.forEach((x,i)=>{tone(hz(x),t,ds[i]+.15,'triangle',.15);tone(hz(x-12),t,ds[i]+.15,'sine',.1);t+=ds[i]})}}
 document.addEventListener('pointerdown',()=>{ac();music()},{passive:true});
 ['mm','gm'].forEach(i=>$(i).onclick=()=>setMusic(!musicOn));
 setMusic(musicOn);
@@ -186,12 +205,12 @@ function play(n){
   pickSkin();
   lvl=n;gen(n);initMove();initBots();score=0;eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};sc=Math.min(CW,CH)/(260+hole.R*6);gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
-  $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on');
+  $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   const h=$('hint');h.textContent=B.ic+' '+B.n+': chạm giữ để di chuyển. Ăn hố nhỏ hơn, tránh hố màu đỏ! Skin: '+SK[skinI][0];h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3500);
   startLoop();music();
 }
-function toMenu(){running=false;$('game').classList.remove('on');$('menu').classList.add('on');buildMap()}
+function toMenu(){running=false;$('game').classList.remove('on');$('menu').classList.add('on');buildMap();music()}
 $('lb').classList.toggle('off',!showLb);$('lb').onclick=()=>{showLb=!showLb;save();$('lb').classList.toggle('off',!showLb)};
 $('bk').onclick=toMenu;$('wm').onclick=toMenu;$('rs').onclick=()=>play(lvl);$('rp').onclick=()=>play(lvl);
 $('nx').onclick=()=>play(Math.min(lvl+1,MAXL));
@@ -224,11 +243,18 @@ function newBot(far){
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
   return{x,y,R,P,tr:R,cd:0,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
 function initBots(){botT=0;bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
-function lose(){dead=true;$('wt').textContent='Bạn bị nuốt!';$('wd').textContent='Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>$('win').classList.add('on'),600)}
+function confetti(){const c=$('cf'),n=cfg.fps>60?60:(cfg.q<1.2?14:36),cs=['#ff4d5e','#ffd166','#4dff9a','#4cc9f0','#b79bff','#ff8ad8'];let h='';
+  for(let i=0;i<n;i++)h+='<i style="left:'+(Math.random()*100)+'%;background:'+cs[i%6]+';animation-duration:'+(2.2+Math.random()*2.5)+'s;animation-delay:'+(Math.random()*1.2)+'s"></i>';
+  c.innerHTML=h;setTimeout(()=>{c.innerHTML=''},6500)}
+function showRes(ok){if(!$('game').classList.contains('on'))return;const w=$('win');w.classList.toggle('w',ok);w.classList.toggle('l',!ok);
+  $('wi').textContent=ok?'🏆':'😢';$('ws').textContent=ok?'⭐⭐⭐':'';
+  if(mt){clearInterval(mt);mt=null} // tắt nhạc nền để nghe nhạc kết quả
+  w.classList.add('on');if(ok)confetti();else $('cf').innerHTML='';jingle(ok)}
+function lose(t,d){dead=true;$('wt').textContent=t||'Bạn bị nuốt!';$('wd').textContent=d||'Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>showRes(false),600)}
 function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<=S+1)S+=p;else return false}return true}
 function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
 function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
-let stuckT=0,botT=0;const BOT_EAT=.6,BOT_MOVE=.7; // tốc độ ăn = 60%, tốc độ di chuyển = 70% so với người chơi
+let stuckT=0,botT=0;const BOT_EAT=.45,BOT_MOVE=.7; // tốc độ ăn = 45%, tốc độ di chuyển = 70% so với người chơi
 function botEat(b){
   if(b.cd>0||botCap(b))return;
   for(const o of objs){if(o.f>=0||o.pts>b.P||o.bk>TT)continue;
@@ -279,13 +305,15 @@ function update(dt){
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
   const ts=Math.min(CW,CH)/(260+hole.R*6);sc+=(ts-sc)*Math.min(1,dt*3);
-  if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){won=true;win()}
+  if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
+    if(bots.some(b=>b.f<0&&b.P>score+1))lose('Thua rồi!','Bạn đã ăn hết bản đồ nhưng vẫn còn hố đen đối thủ lớn hơn, không thể qua màn.');
+    else{won=true;win()}}
 }
 function win(){
   if(lvl>done){done=lvl;save()}
   const last=lvl>=MAXL;$('wt').textContent=last?'Bạn đã phá đảo!':'Hoàn thành màn '+lvl;
   $('wd').textContent='Cả thành phố đã bị nuốt chửng';$('nx').style.display=last?'none':'';
-  setTimeout(()=>$('win').classList.add('on'),500);
+  setTimeout(()=>showRes(true),500);
 }
 const E=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,Math.abs(a),Math.abs(b),0,0,7)},
 Rr=(x,y,w,h,r=2)=>{ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)},

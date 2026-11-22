@@ -84,7 +84,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 <div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div><button class="btn" id="sx" style="width:100%">Đóng</button></div></div>
 <script>
 const $=id=>document.getElementById(id);
-const MAXL=10000;
+const MAXL=10000,START_PTS=5;
 let done=0,musicOn=true,showLb=true;
 try{done=+localStorage.getItem('bh_done')||0;musicOn=localStorage.getItem('bh_music')!=='0';showLb=localStorage.getItem('bh_lb')!=='0'}catch(e){}
 const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_music',musicOn?1:0);localStorage.setItem('bh_lb',showLb?1:0)}catch(e){}};
@@ -195,15 +195,15 @@ function gen(n){
     const sp=B.all||(B.sh&&B.sh[i])||t[4];if(sp==='c')hw=hh=Math.max(hw,hh);if(Math.hypot(x-hx,y-hy)<90)continue;
     let ok=true;for(const o of L)if(Math.abs(o.x-x)<o.w+hw+2&&Math.abs(o.y-y)<o.h+hh+2){ok=false;break}
     if(ok)L.push({x,y,w:hw,h:hh,need:t[1],pts:t[2],c,d:shade(c,.6),sh:sp,hz:t[5],f:-1,i,vx:0,vy:0,ms:B.mv&&B.mv[i]?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free})}
-  // loại vật thể không thể ăn được theo tiến trình tăng kích thước
-  L.sort((a,b)=>a.pts-b.pts);let S=0;const keep=[];
-  for(const o of L){if(o.pts<=S*.75+1){keep.push(o);S+=o.pts}}
+  // loại vật thể không thể ăn được theo tiến trình tăng kích thước (chỉ ăn được khi nhiều điểm hơn)
+  L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;const keep=[];
+  for(const o of L){if(o.pts<S){keep.push(o);S+=o.pts}}
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
-  hole={x:hx,y:hy,R:rad(0),tr:rad(0)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
+  hole={x:hx,y:hy,R:rad(START_PTS-1),tr:rad(START_PTS-1)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:B.deco==='w'?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
 }
 function play(n){
   pickSkin();
-  lvl=n;gen(n);initMove();initBots();score=0;eaten=0;fx=[];won=false;js=null;combo=0;
+  lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};sc=Math.min(CW,CH)/(260+hole.R*6);gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
@@ -230,7 +230,7 @@ function moveObj(o,dt){
   // vật >1 điểm: 20%, khi chạy trốn nhanh gấp 1.4 lần
   const PS=130+hole.R*.9,SP=PS*(o.pts<=1?OBJ_MOVE1:OBJ_MOVE),FS=o.pts<=1?SP:SP*OBJ_FLEE;
   if(!o.ln){const dx=o.x-hole.x,dy=o.y-hole.y,l=Math.hypot(dx,dy);
-    if(o.pts<=score+1&&l<hole.R*2.2&&l>1){o.vx=dx/l;o.vy=dy/l;o.tm=1.5;o.fl=true}
+    if(o.pts<score&&l<hole.R*2.2&&l>1){o.vx=dx/l;o.vy=dy/l;o.tm=1.5;o.fl=true}
     else{o.tm-=dt;if(o.tm<=0){o.tm=2+Math.random()*4;o.fl=false;const a=Math.random()*6.283;o.vx=Math.cos(a);o.vy=Math.sin(a)}}}
   {const ts=o.fl?FS:SP;let l0=Math.hypot(o.vx,o.vy);if(l0<1e-6){const a=Math.random()*6.283;o.vx=Math.cos(a);o.vy=Math.sin(a);l0=1}
     o.vx=o.vx/l0*ts;o.vy=o.vy/l0*ts}
@@ -242,7 +242,7 @@ function newBot(far){
   const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
   let x,y,t=0;do{x=80+Math.random()*(WS-160);y=80+Math.random()*(WS-160);t++}while(Math.hypot(x-hole.x,y-hole.y)<(far||450)&&t<40);
   return{x,y,R,P,tr:R,cd:0,vx:0,vy:0,tx:x,ty:y,tm:0,f:-1,sp:0}}
-function initBots(){botT=0;bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());dead=false;grace=2.5}
+function initBots(){botT=0;bots=[];const n=Math.min(2+((Math.min(lvl,300)/40)|0),6);for(let i=0;i<n;i++)bots.push(newBot());botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5}
 function confetti(){const c=$('cf'),n=cfg.fps>60?60:(cfg.q<1.2?14:36),cs=['#ff4d5e','#ffd166','#4dff9a','#4cc9f0','#b79bff','#ff8ad8'];let h='';
   for(let i=0;i<n;i++)h+='<i style="left:'+(Math.random()*100)+'%;background:'+cs[i%6]+';animation-duration:'+(2.2+Math.random()*2.5)+'s;animation-delay:'+(Math.random()*1.2)+'s"></i>';
   c.innerHTML=h;setTimeout(()=>{c.innerHTML=''},6500)}
@@ -251,35 +251,58 @@ function showRes(ok){if(!$('game').classList.contains('on'))return;const w=$('wi
   if(mt){clearInterval(mt);mt=null} // tắt nhạc nền để nghe nhạc kết quả
   w.classList.add('on');if(ok)confetti();else $('cf').innerHTML='';jingle(ok)}
 function lose(t,d){dead=true;$('wt').textContent=t||'Bạn bị nuốt!';$('wd').textContent=d||'Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>showRes(false),600)}
-function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<=S+1)S+=p;else return false}return true}
+function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
+function canBeatBots(){const a=[];for(const b of bots)if(b.f<0)a.push(b.P);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
 function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
-function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
-let stuckT=0,botT=0;const BOT_EAT=.45,BOT_MOVE=.7; // tốc độ ăn = 45%, tốc độ di chuyển = 70% so với người chơi
+function nearFood(b){let best=null,bd=900;if(botCap(b))return null;for(const o of objs){if(o.f>=0||o.pts>=b.P)continue;const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
+let stuckT=0,botT=0,spawnT=0,botsEaten=0,botsTotal=0,botHint=false;
+const BOT_EAT=.25,BOT_MOVE=.5; // tốc độ ăn = 25%, tốc độ di chuyển = 50% so với người chơi
+const HUNT_T=30,HUNT_K=.15; // 30 giây đầu: chỉ hố đối thủ có điểm <15% điểm người chơi mới được phép ăn nhau
+const setProg=()=>{$('fill').style.width=((eaten+botsEaten)/(total+botsTotal)*100)+'%'};
 function botEat(b){
   if(b.cd>0||botCap(b))return;
-  for(const o of objs){if(o.f>=0||o.pts>b.P||o.bk>TT)continue;
+  for(const o of objs){if(o.f>=0||o.pts>=b.P||o.bk>TT)continue;
     if(Math.abs(o.x-b.x)>b.R||Math.abs(o.y-b.y)>b.R||Math.hypot(o.x-b.x,o.y-b.y)>=b.R)continue;
     if(!canSpare(o)){o.bk=TT+2;continue}
-    o.f=0;o.tg=b;o.fr=BOT_EAT;b.cd=1/(3.5*BOT_EAT);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;$('fill').style.width=(eaten/total*100)+'%';return}
+    o.f=0;o.tg=b;o.fr=BOT_EAT;b.cd=1/(3.5*BOT_EAT);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;setProg();return}
+}
+const SPAWN_EVERY=10,SPAWN_N=5,BOT_MAX=16;
+function spawnBots(){ // mỗi 10 giây: thêm tối đa 5 hố đối thủ (tổng trên map tối đa 16), điểm = 5-10% điểm người chơi
+  const n=Math.min(SPAWN_N,BOT_MAX-bots.length);if(n<=0)return;
+  for(let i=0;i<n;i++){const b=newBot(450),P=Math.max(1,Math.round(score*(.05+Math.random()*.05)));b.P=P;b.R=b.tr=rad(P-1);bots.push(b)}
+  botsTotal+=n;setProg();const h=$('hint');h.textContent='⚠ '+n+' hố đen đối thủ mới xuất hiện!';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,2500)}
+const botMayHunt=b=>botT>=HUNT_T||b.P<HUNT_K*score; // 30s đầu: chỉ hố có điểm <15% hố người chơi mới được ăn nhau
+function nearPrey(b){if(!botMayHunt(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P)continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
+function botEatBot(b){ // đối thủ ăn lẫn nhau: nhận 100% điểm của hố bị ăn và hố bị ăn biến mất hẳn
+  if(b.cd>0||botCap(b)||!botMayHunt(b))return;const need=(b.fd&&b.fd.f<0)?.4:.8;
+  for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P)continue;
+    const g=c.P;
+    if(Math.hypot(c.x-b.x,c.y-b.y)>=b.R*need)continue;
+    c.f=0;c.eb=b;for(const o of objs)if(o.tg===c)o.tg=b;
+    b.cd=1/(3.5*BOT_EAT);b.P+=g;b.tr=rad(b.P-1);return}
 }
 function updBots(dt){
   if(grace>0)grace-=dt;botT+=dt;
+  if(!dead&&!won&&eaten<total){spawnT+=dt;if(spawnT>=SPAWN_EVERY){spawnT-=SPAWN_EVERY;spawnBots()}}
   for(const b of bots){
-    if(b.f>=0){b.f+=dt*3;b.x+=(hole.x-b.x)*Math.min(1,dt*8);b.y+=(hole.y-b.y)*Math.min(1,dt*8);if(b.f>=1)Object.assign(b,newBot(700),{sp:4});continue}
+    if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
     if(b.sp>0){b.sp-=dt;continue}
     if(b.cd>0)b.cd-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
     const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE;
     b.fdT=(b.fdT||0)-dt;if(b.fdT<=0){b.fdT=.4+Math.random()*.2;b.fd=nearFood(b)}const fd=b.fd&&b.fd.f<0?b.fd:null; // ưu tiên ăn vật thể; chỉ săn người chơi khi hết đồ ăn gần, đã qua giai đoạn đầu hoặc người chơi ở rất gần
-    if(score+1>=b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
-    else if(b.P>score+1&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}
-    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const f=nearFood(b);if(f){b.tx=f.x;b.ty=f.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}}
+    if(score>b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
+    else if(b.P>score&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}
+    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const f=nearFood(b),q=f?null:nearPrey(b);if(f){b.tx=f.x;b.ty=f.y}else if(q){b.tx=q.x;b.ty=q.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}}
       const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl}
     const k=Math.min(1,dt*4);b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;
     b.x=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.x+b.vx*dt));b.y=Math.max(b.R*.5,Math.min(WS-b.R*.5,b.y+b.vy*dt));
     if(!won)botEat(b);
+    if(!won&&!dead)botEatBot(b);
     if(dead)continue;
-    if(score+1>=b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;for(const o of objs)if(o.tg===b)o.tg=null;const p=Math.max(2,Math.round(b.P*.6));score+=p;hole.tr=rad(score);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
-    else if(b.P>score+1&&l<b.R&&grace<=0)lose()}
+    if(score>b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;for(const o of objs)if(o.tg===b)o.tg=null;const p=b.P;score+=p; // nhận 100% điểm của hố bị ăn
+      hole.tr=rad(score-1);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
+    else if(b.P>score&&l<b.R&&grace<=0)lose()}
+  if(bots.some(b=>b.gone)){const n0=bots.length;bots=bots.filter(b=>!b.gone);botsEaten+=n0-bots.length;setProg()}
 }
 function update(dt){
   if(dead){hole.R=Math.max(.5,hole.R*(1-Math.min(1,dt*3)));for(const f of fx)f.t+=dt;updBots(dt);return}
@@ -289,25 +312,26 @@ function update(dt){
   hole.x=Math.max(0,Math.min(WS,hole.x));hole.y=Math.max(0,Math.min(WS,hole.y));
   hole.R+=(hole.tr-hole.R)*Math.min(1,dt*6);if(hole.pulse>0)hole.pulse=Math.max(0,hole.pulse-dt*2.5);
   for(const q of spk){q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt}if(spk.length&&spk[0].t>.5)spk=spk.filter(q=>q.t<.5);
-  const R=Math.max(hole.R,hole.tr),P=score+1,lim=R+80;
+  const R=Math.max(hole.R,hole.tr),lim=R+80;
   for(const o of objs){
     if(o.f>=1)continue;
     if(o.f>=0){const tg=o.tg||hole;o.f+=dt*3.5*(o.fr||1);o.x+=(tg.x-o.x)*Math.min(1,dt*9);o.y+=(tg.y-o.y)*Math.min(1,dt*9);continue}
     if(o.ms)moveObj(o,dt);
-    if(o.pts>P)continue;
+    if(o.pts>=score)continue;
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
-    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=rad(score);combo=Math.min(combo+1,12);sfx(combo);
-      fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});$('fill').style.width=(eaten/total*100)+'%'}}
+    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=rad(score-1);combo=Math.min(combo+1,12);sfx(combo);
+      fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});setProg()}}
   stuckT+=dt;if(stuckT>1){stuckT=0;objs=objs.filter(o=>o.f<1);if(!won){let mn=1e9,anim=false;for(const o of objs){if(o.f>=1)continue;if(o.f>=0){anim=true;break}if(o.pts<mn)mn=o.pts}
-    if(!anim&&mn<1e9&&mn>score+1){const g=mn-1-score;score=mn-1;hole.tr=rad(score);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
+    if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=rad(score-1);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
   if(!won)updBots(dt);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
   const ts=Math.min(CW,CH)/(260+hole.R*6);sc+=(ts-sc)*Math.min(1,dt*3);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
-    if(bots.some(b=>b.f<0&&b.P>score+1))lose('Thua rồi!','Bạn đã ăn hết bản đồ nhưng vẫn còn hố đen đối thủ lớn hơn, không thể qua màn.');
-    else{won=true;win()}}
+    if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
+    else if(!bots.length){won=true;win()}
+    else if(!botHint){botHint=true;const h=$('hint');h.textContent='Còn '+bots.length+' hố đen đối thủ - ăn nốt để qua màn!';h.style.opacity=1;setTimeout(()=>h.style.opacity=0,4000)}}
 }
 function win(){
   if(lvl>done){done=lvl;save()}
@@ -476,16 +500,16 @@ function skinSprite(){let o=skinCache[skinI];if(o)return o;const k=SK[skinI];
   else{g.strokeStyle=k[3];g.lineWidth=7;g.beginPath();g.arc(C,C,R,0,7);g.stroke()}
   g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;g.beginPath();g.arc(C,C,R*.96,3.6,4.9);g.stroke();
   return skinCache[skinI]=c}
-function botSprite(red){const key=red?1:0;return botSpr[key]||(botSpr[key]=mkSprite(red?'#ff4d5e':'#4dff9a','#2a0f18','',''))}
+function botSprite(st){return botSpr[st]||(botSpr[st]=mkSprite(st===2?'#ff4d5e':st===1?'#ffd166':'#4dff9a','#2a0f18','',''))}
 const holeSc=R=>Math.round(Math.pow(Math.max(0,(R-16)/3.4),2));
 function drawBot(b){
   const sm=b.f>=0?1-b.f:1,R=b.R*sm,hx=b.x,hy=b.y;if(R<1)return;
-  const col=b.P>score+1?'#ff4d5e':'#4dff9a';
-  ctx.drawImage(botSprite(col==='#ff4d5e'),hx-R*1.6,hy-R*1.6,R*3.2,R*3.2);
+  const st=b.P>score?2:(b.P===score?1:0),col=st===2?'#ff4d5e':(st===1?'#ffd166':'#4dff9a');
+  ctx.drawImage(botSprite(st),hx-R*1.6,hy-R*1.6,R*3.2,R*3.2);
   ctx.strokeStyle=col;ctx.lineWidth=Math.max(2.5,R*.08);ctx.beginPath();ctx.arc(hx,hy,R,0,7);ctx.stroke();
   const ml=Math.hypot(b.vx,b.vy)||1,ex=b.vx/ml*R*.06,ey=b.vy/ml*R*.06;
   for(const sx of[-1,1]){ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(hx+sx*R*.3,hy-R*.12,R*.17,R*.22,0,0,7);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(hx+sx*R*.3+ex,hy-R*.12+ey,R*.09,0,7);ctx.fill()}
-  if(col==='#ff4d5e'){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,R*.05);ctx.beginPath();ctx.moveTo(hx-R*.52,hy-R*.42);ctx.lineTo(hx-R*.12,hy-R*.3);ctx.moveTo(hx+R*.52,hy-R*.42);ctx.lineTo(hx+R*.12,hy-R*.3);ctx.stroke()}
+  if(st===2){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,R*.05);ctx.beginPath();ctx.moveTo(hx-R*.52,hy-R*.42);ctx.lineTo(hx-R*.12,hy-R*.3);ctx.moveTo(hx+R*.52,hy-R*.42);ctx.lineTo(hx+R*.12,hy-R*.3);ctx.stroke()}
 }
 function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0b0616';ctx.fillRect(0,0,CW,CH);
@@ -518,10 +542,10 @@ function draw(){
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
   if(showLb){ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';
     for(const o of objs){if(o.f>=0||!vis(o))continue;const fs=Math.max(8/sc,Math.min(13/sc,o.w*1.5+8)),y=o.y-o.h-o.hz*.9-fs*.7;
-      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle=o.pts<=score+1?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
+      ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle=o.pts<score?'#7dffb0':'#ff8a8a';ctx.strokeText(o.pts,o.x,y);ctx.fillText(o.pts,o.x,y)}
     for(const b of bots){if(b.sp>0||b.f>=0||Math.abs(b.x-cam.x)>vx+b.R||Math.abs(b.y-cam.y)>vy+b.R)continue;const fs=Math.max(10/sc,b.R*.4),t=''+b.P,y=b.y+b.R*.5;
       ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,b.x,y);ctx.fillText(t,b.x,y)}
-    if(!dead){const fs=Math.max(11/sc,hole.R*.5),t=''+(score+1);ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,hole.x,hole.y);ctx.fillText(t,hole.x,hole.y)}
+    if(!dead){const fs=Math.max(11/sc,hole.R*.5),t=''+score;ctx.font='bold '+fs+'px sans-serif';ctx.lineWidth=fs*.3;ctx.fillStyle='#fff';ctx.strokeText(t,hole.x,hole.y);ctx.fillText(t,hole.x,hole.y)}
     ctx.textBaseline='alphabetic'}
   ctx.font='bold 18px sans-serif';ctx.textAlign='center';
   for(const f of fx){ctx.globalAlpha=1-f.t/.8;ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=3;

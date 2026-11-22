@@ -344,7 +344,7 @@ function update(dt){
 function win(){
   if(lvl>done){done=lvl;save()}
   const last=lvl>=MAXL;$('wt').textContent=last?'Bạn đã phá đảo!':'Hoàn thành màn '+lvl;
-  $('wd').textContent='Cả thành phố đã bị nuốt chửng';$('nx').style.display=last?'none':'';
+  $('wd').textContent='Mọi thứ đã bị nuốt chửng';$('nx').style.display=last?'none':'';
   setTimeout(()=>showRes(true),500);
 }
 const E=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,Math.abs(a),Math.abs(b),0,0,7)},

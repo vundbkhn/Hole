@@ -576,7 +576,7 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 
 /* ---------- game ---------- */
 const cv=$('cv');let ctx=cv.getContext('2d',{alpha:false});const mainCtx=ctx;
-let slowT=0,RS=1,RSmax=1,emaI=16.7,lastRaw=0,okT=0,lastUp=-1e9,coolT=0,live=false,paused=false,vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,holeMaxR=rad(1),B,deco=[],sceneMarks=[],walls=[],islands=[],bridges=[],landRects=[],belts=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
+let slowT=0,RS=1,RSmax=1,emaI=16.7,lastRaw=0,okT=0,lastUp=-1e9,coolT=0,live=false,paused=false,vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],sceneMarks=[],walls=[],islands=[],bridges=[],landRects=[],belts=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
 const GFX={ultra:{dmin:1.5,dmax:3,dfl:1,px:4.2e6,fps:120,sq:'high',q:3.2,tex:2,vig:.48,sp:12,spc:140,rings:5,bloom:1,light:1,shadow:2,detail:2,swirl:1,spr:1},
   normal:{dmin:1,dmax:2.5,dfl:.75,px:2.4e6,fps:60,sq:'medium',q:2.4,tex:2,vig:.42,sp:8,spc:70,rings:4,bloom:1,light:1,shadow:2,detail:2,swirl:1,spr:1},
   low:{dmin:1,dmax:1.5,dfl:.6,px:1.1e6,fps:60,sq:'low',q:1.6,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:1,detail:1,swirl:0,spr:1}};
@@ -620,7 +620,7 @@ function syncCanvasSize(w,h){
   if(ch)cv.width=bw,cv.height=bh;
   ctx.imageSmoothingQuality=cfg.sq;
   if(cfg.vig){vig=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.4,CW/2,CH/2,Math.hypot(CW,CH)*.56);vig.addColorStop(0,'rgba(8,2,22,0)');vig.addColorStop(1,'rgba(8,2,22,'+cfg.vig+')')}else vig=null;
-  if(hole)sc=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);
+  if(hole)sc=Math.min(CW,CH)/(260+hole.R*6);
   return ch;
 }
 let mapH=0;
@@ -736,8 +736,7 @@ function gen(n){
   L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;const keep=[];
   for(const o of L){if(o.pts<S){keep.push(o);S+=o.pts}}
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
-  const maxMapObjectPts=objs.reduce((m,o)=>Math.max(m,o.pts),START_PTS);holeMaxR=rad(maxMapObjectPts);
-  hole={x:hx,y:hy,vx:0,vy:0,R:rad(START_PTS-1),tr:Math.min(rad(START_PTS-1),holeMaxR)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:(B.deco==='w'||B.deco==='d')?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
+  hole={x:hx,y:hy,vx:0,vy:0,R:rad(START_PTS-1),tr:rad(START_PTS-1)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:(B.deco==='w'||B.deco==='d')?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
   // Cảnh nền theo chủ đề: các sinh vật/địa hình lớn tạo chiều sâu cho từng map.
   sceneMarks=[];
   if(B.scene){
@@ -793,7 +792,7 @@ function play(n){
   lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
-  resize();sc=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);
+  resize();sc=Math.min(CW,CH)/(260+hole.R*6);
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   const mh={maze:'🧱 Mê cung: luồn lách qua các vách đá để săn mồi!',ice:'🧊 Sân băng: mặt băng trơn trượt có quán tính, căn góc chuẩn!',island:'🏝️ Quần đảo: ăn lớn ở đảo nhà rồi qua cầu chinh phục các đảo!',belt:'⚙️ Nhà máy: tận dụng luồng băng chuyền để gom vật thể!',night:'🌙 Đêm tối: vùng sáng mở rộng dần khi hố đen lớn lên!'};if(B.scene==='ocean')mh.ocean='🌊 Đại Dương & Thủy Quái: hải lưu đẩy trôi nhẹ, khám phá xác tàu và quái vật biển sâu!';if(B.scene==='dino')mh.dino='🦖 Công Viên Khủng Long: né mưa thiên thạch, săn đá quý giữa rừng dương xỉ và núi lửa!';if(B.scene==='volcano')mh.volcano='🌋 Thế Giới Núi Lửa: khám phá miệng núi lửa, dòng dung nham và đá obsidian!';if(B.scene==='haunted')mh.haunted='🏰 Lâu Đài Ma Ám: tìm đường giữa bóng ma, dơi đêm và bí mật cổ xưa!';if(B.scene==='candy')mh.candy='🍭 Vương Quốc Kẹo Ngọt: thế giới pastel với kẹo mút, bánh ngọt và thạch dẻo!';if(B.scene==='egypt')mh.egypt='𓂀 Ai Cập Cổ Đại: khám phá kim tự tháp, tượng Nhân Sư và cổ vật thất lạc!';if(B.scene==='arctic')mh.arctic='❄️ Bắc Cực: băng trơn, tuyết rơi và cực quang phương Bắc!';if(B.scene==='cyberpunk')mh.cyberpunk='🌃 Thành Phố Cyberpunk: ánh đèn neon, drone và những tòa tháp tương lai!';if(B.scene==='dragon')mh.dragon='🐉 Vương Quốc Rồng: khám phá hang kho báu, trứng rồng và những sinh vật phun lửa!';if(B.scene==='mushroom')mh.mushroom='🍄 Rừng Nấm Kỳ Bí: nấm phát sáng, đom đóm và những ngôi nhà tí hon!';if(B.scene==='atlantis')mh.atlantis='🔱 Thành Phố Atlantis: cung điện chìm, nàng tiên cá, ngọc trai và đinh ba!';if(B.scene==='skyisland')mh.skyisland='☁️ Đảo Bay Trên Không: đảo lơ lửng, cá voi trời, cầu vồng và khinh khí cầu!';if(B.scene==='greek')mh.greek='⚡ Thần Thoại Hy Lạp: Pegasus, đền thần, vòng nguyệt quế và sấm sét!';if(B.scene==='samurai')mh.samurai='⛩️ Nhật Bản Samurai: cổng Torii, hoa anh đào, kiếm Katana và tháp chùa!';if(B.scene==='iceage')mh.iceage='🦣 Kỷ Băng Hà: voi ma mút, hổ răng kiếm, hang băng và hóa thạch!';if(B.scene==='space')mh.space='🛸 Trạm Không Gian: phi hành gia, vệ tinh, robot thám hiểm và hành tinh xa!';
   showHint((B.scene?mh[B.scene]:mh[B.mech])||(B.ic+' '+B.n+': chạm giữ để di chuyển. Skin: '+SK[skinI][0]+(skinSel>=0?' (cố định)':' (ngẫu nhiên)')),3800);
@@ -919,7 +918,7 @@ function updBots(dt){
     if(!won&&!dead)botEatBot(b);
     if(dead)continue;
     if(score>b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;for(const o of objs)if(o.tg===b)o.tg=null;const p=b.P;score+=p;
-      hole.tr=Math.min(rad(score-1),holeMaxR);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
+      hole.tr=rad(score-1);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
     else if(b.P>score&&l<b.R&&grace<=0)lose()}
   if(bots.some(b=>b.gone)){const n0=bots.length;bots=bots.filter(b=>!b.gone);botsEaten+=n0-bots.length;setProg()}
 }
@@ -956,15 +955,15 @@ function update(dt){
     }}
     if(o.pts>=score)continue;
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
-    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=Math.min(rad(score-1),holeMaxR);combo=Math.min(combo+1,12);sfx(combo);
+    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=rad(score-1);combo=Math.min(combo+1,12);sfx(combo);
       fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});setProg()}}
   stuckT+=dt;if(stuckT>1){stuckT=0;objs=objs.filter(o=>o.f<1);if(!won){let mn=1e9,anim=false;for(const o of objs){if(o.f>=1)continue;if(o.f>=0){anim=true;break}if(o.pts<mn)mn=o.pts}
-    if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=Math.min(rad(score-1),holeMaxR);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
+    if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=rad(score-1);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
   if(!won)updBots(dt);
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
-  const ts=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);sc+=(ts-sc)*Math.min(1,dt*3);
+  const ts=Math.min(CW,CH)/(260+hole.R*6);sc+=(ts-sc)*Math.min(1,dt*3);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}

@@ -1084,7 +1084,7 @@ const LIGHT=(()=>{const c=document.createElement('canvas');c.width=c.height=128;
 const SHD=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),r=g.createRadialGradient(64,64,0,64,64,64);
   r.addColorStop(0,'rgba(0,0,0,.46)');r.addColorStop(.52,'rgba(0,0,0,.24)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,128,128);return c})();
 const PIT=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),r=g.createRadialGradient(64,64,24,64,64,64);
-  r.addColorStop(0,'rgba(0,0,0,.62)');r.addColorStop(.5,'rgba(0,0,0,.28)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,128,128);return c})();
+  r.addColorStop(0,'rgba(0,0,0,.5)');r.addColorStop(.5,'rgba(0,0,0,.18)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,128,128);return c})();
 function mkPat(color){
   if(!cfg.tex)return color;const T2=cfg.tex>1,S=T2?512:256,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');g.fillStyle=color;g.fillRect(0,0,S,S);
   let a=(color.length*2654435761>>>0)||1;const rnd=()=>(a=(a*1664525+1013904223)>>>0)/4294967296;
@@ -1225,8 +1225,8 @@ function sRing(g,m,l,wall,pit,rb){
   // 4. Vành Torus 3D bo tròn (dùng evenodd để khoét lỗ giữa chuẩn xác)
   g.save();
   g.beginPath();
-  g.ellipse(0,0,101,94,0,0,7);
-  g.ellipse(0,3,80,73,0,0,7,true);
+  g.ellipse(0,0,101,94,0,0,Math.PI*2);g.closePath();
+  g.moveTo(80,3);g.ellipse(0,3,80,73,0,0,Math.PI*2);g.closePath();
   g.clip('evenodd');
   if(rb){
     const cs=['#ff4d5e','#ff9a3c','#ffe14d','#4dff9a','#4cc9f0','#b36bff'];
@@ -1516,7 +1516,7 @@ const SKA={
 function mkSkinSprite(i,q){
   const k=SK[i],c=document.createElement('canvas'),Z=Math.round(320*q);c.width=c.height=Z;const g=c.getContext('2d');g.scale(Z/320,Z/320);g.translate(160,160);g.lineJoin='round';g.lineCap='round';
   // Quầng hào quang 3D dịu xung quanh
-  const gr=g.createRadialGradient(0,0,76,0,0,156);gr.addColorStop(0,k[1]+'77');gr.addColorStop(.55,k[1]+'28');gr.addColorStop(1,k[1]+'00');g.fillStyle=gr;g.beginPath();g.arc(0,0,156,0,7);g.fill();
+  const gr=g.createRadialGradient(0,0,76,0,0,156);
   const t=SKA[k[5]]||{};if(t.b)t.b(g,k[2],k[3],k[4]);
   sRing(g,k[2],k[3],SKW[k[5]]||'#2a1240',SKPIT[k[5]]||'#080212',k[5]==='rainbow');
   if(t.f)t.f(g,k[2],k[3],k[4]);
@@ -1609,7 +1609,7 @@ function draw(){
   // hố đen
   const R=hole.R,hx=hole.x,hy=hole.y;
   if(cfg.light)ctx.drawImage(LIGHT,hx-R*5,hy-R*5,R*10,R*10);
-  const hs=skinSprite();if(cfg.shadow)ctx.drawImage(PIT,hx-R*2.1,hy-R*2.1,R*4.2,R*4.2);
+  const hs=skinSprite();
   ctx.drawImage(hs,hx-R*1.6,hy-R*1.6,R*3.2,R*3.2);ctx.lineCap='round';
   if(cfg.swirl&&hs.sw){ctx.save();ctx.translate(hx,hy);ctx.rotate(TT*.9);ctx.globalAlpha=.38;ctx.drawImage(hs.sw,-R*1.05,-R*1.05,R*2.1,R*2.1);ctx.restore();ctx.globalAlpha=1}
   /* (đã bỏ 'bloom' giả: vẽ lại skin phóng to 19% tạo bóng ma lệch tâm, gây khó nhìn) */

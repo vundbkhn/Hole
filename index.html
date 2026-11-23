@@ -1612,7 +1612,7 @@ function draw(){
   const hs=skinSprite();if(cfg.shadow)ctx.drawImage(PIT,hx-R*2.1,hy-R*2.1,R*4.2,R*4.2);
   ctx.drawImage(hs,hx-R*1.6,hy-R*1.6,R*3.2,R*3.2);ctx.lineCap='round';
   if(cfg.swirl&&hs.sw){ctx.save();ctx.translate(hx,hy);ctx.rotate(TT*.9);ctx.globalAlpha=.38;ctx.drawImage(hs.sw,-R*1.05,-R*1.05,R*2.1,R*2.1);ctx.restore();ctx.globalAlpha=1}
-  if(cfg.bloom){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.09;ctx.drawImage(hs,hx-R*1.9,hy-R*1.9,R*3.8,R*3.8);ctx.globalCompositeOperation='source-over'}
+  /* (đã bỏ 'bloom' giả: vẽ lại skin phóng to 19% tạo bóng ma lệch tâm, gây khó nhìn) */
   const rc=SK[skinI][4],nr=cfg.rings,st=nr>3?.15:.2;ctx.strokeStyle=rc;
   for(let k=0;k<nr;k++){const a0=TT*(2-k*.6)+k*2;ctx.globalAlpha=Math.max(.12,.48-k*.1);ctx.lineWidth=Math.max(1.5,R*.04);ctx.beginPath();ctx.arc(hx,hy,R*(.64-k*st*.58),a0,a0+1.6);ctx.stroke()}
   ctx.globalAlpha=1;

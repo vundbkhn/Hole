@@ -201,7 +201,7 @@ body[data-gfx=low] #win.w #wi{filter:none}
 <div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script type="text/plain" id="main">
 const $=id=>document.getElementById(id);
-const MAXL=10000,START_PTS=2,MAX_ENT=100,MAX_TIME=120,RESPAWN_BELOW=15,APP_VER='v28';
+const MAXL=10000,START_PTS=2,MAX_ENT=150,MAX_TIME=120,RESPAWN_BELOW=15,APP_VER='v30';
 let done=0,musicOn=true,showLb=true;
 try{done=+localStorage.getItem('bh_done')||0;showLb=localStorage.getItem('bh_lb')!=='0';musicOn=localStorage.getItem('bh_music')!=='0'}catch(e){}
 const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_lb',showLb?1:0);localStorage.setItem('bh_music',musicOn?1:0)}catch(e){}};
@@ -687,15 +687,43 @@ function beltVel(x,y){
 }
 /* ---------- sinh vật thể theo quy tắc điểm mới ---------- */
 const MAP_DENS=.16,GAP=16;
-let clears=[];
+let clears=[],items=[],shieldT=0,boostT=0,slowPlT=0,warnBot=false,warnObj=false,p2Hint=false;
+const ITEM_TYPES=['rocket','snow','bomb','shield'],ITEM_EM={rocket:'🚀',snow:'❄️',bomb:'💣',shield:'🛡️'},ITEM_COL={rocket:'#ffb703',snow:'#8ecae6',bomb:'#ff4d5e',shield:'#4cc9f0'};
+function placeItem(L,r,ax,ay,am){
+  for(let k=0;k<60;k++){
+    let x,y;
+    if(B.mech==='island'&&islands.length){const isl=islands[(r()*islands.length)|0];x=isl.x0+50+r()*Math.max(10,isl.x1-isl.x0-100);y=isl.y0+50+r()*Math.max(10,isl.y1-isl.y0-100)}
+    else{x=80+r()*(WS-160);y=80+r()*(WS-160)}
+    if(Math.hypot(x-ax,y-ay)<am)continue;
+    if(B.mech==='maze'){let hit=false;for(const wl of walls)if(x+34>wl.x0&&x-34<wl.x1&&y+34>wl.y0&&y-34<wl.y1){hit=true;break}if(hit)continue}
+    let ok=true;for(const o of L)if(o.f<1&&Math.abs(o.x-x)<o.w+34&&Math.abs(o.y-y)<o.h+34+o.hz*.5){ok=false;break}
+    if(ok)for(const it of items)if(Math.hypot(it.x-x,it.y-y)<90){ok=false;break}
+    if(!ok)continue;
+    return{x,y,type:ITEM_TYPES[(r()*4)|0],f:-1,t:r()*6}}
+  return null}
+function minObjPts(){let m=1e9;for(const o of objs)if(o.f<0&&o.pts<m)m=o.pts;return m}
+/* Boom: mất 10-30% (ẩn), nhưng sau khi mất điểm còn lại luôn > vật nhỏ nhất +15% để không bị kẹt */
+function boomLoss(cur){const mn=minObjPts(),need=mn>=1e9?START_PTS:Math.max(Math.ceil(mn*1.15),mn+1,START_PTS);
+  return Math.max(0,Math.min(Math.floor(cur*(.1+Math.random()*.2)),cur-need))}
+function pickItem(it){
+  it.f=0;sfx(8);
+  if(it.type==='rocket'){boostT=5;showHint('🚀 Tăng tốc x3 trong 5 giây!',2200)}
+  else if(it.type==='snow'){for(const b of bots)if(b.f<0)b.slowT=8;showHint('❄️ Hố đen đối thủ bị làm chậm 8 giây!',2200)}
+  else if(it.type==='shield'){shieldT=8;showHint('🛡️ Vòng bảo vệ: không bị nuốt trong 8 giây!',2200)}
+  else{const loss=boomLoss(score);score-=loss;hole.tr=Math.min(rad(score-1),holeMaxR);hole.pulse=1;
+    if(loss>0)fx.push({x:hole.x,y:hole.y,t:0,s:'-'+loss});showHint('💣 Boom! Bạn bị mất một phần điểm',2400)}}
+function botPick(it,b){
+  it.f=0;
+  if(it.type==='snow'){slowPlT=8;for(const o of bots)if(o!==b&&o.f<0)o.slowT=8;showHint('❄️ Một hố đen đối thủ nhặt bông tuyết: bạn bị chậm 8 giây!',2400)}
+  else{const loss=boomLoss(b.P);b.P-=loss;b.tr=Math.min(rad(b.P-1),botMaxR);fx.push({x:b.x,y:b.y,t:0,s:'💣'})}}
 /* vật to: dọn đường dưới chân vật (vẽ nền đè lên đường) và gỡ vách mê cung chạm vật */
 function addClear(o){
   if(!B.free)clears.push({x0:o.x-o.w-26,y0:o.y-o.h-26,x1:o.x+o.w+26,y1:o.y+o.h+26});
   if(B.mech==='maze')walls=walls.filter(w=>!(w.x1>o.x-o.w-16&&w.x0<o.x+o.w+16&&w.y1>o.y-o.h-16&&w.y0<o.y+o.h+16))}
 const objR=p=>Math.max(5,3.2*Math.sqrt(p));
 const tierOf=p=>p<=1?0:p<=5?1:p<=10?2:p<=50?3:p<=200?4:5,TIER_TYPES=[[0,1,2],[1,2,3],[4,5],[6,7],[7,8],[8,9]];
-/* 20% = 1đ, 10% = 2đ, 10% = 5đ, 10% = 10đ, 15% = 50đ, 15% = 200đ, 20% còn lại ngẫu nhiên 250-5000đ */
-function genPts(n,r){const q=[.2,.1,.1,.1,.15,.15],v=[1,2,5,10,50,200],a=[];
+/* 30% = 1đ, 15% = 2đ, 15% = 5đ, 15% = 10đ, 10% = 50đ, 8% = 200đ, phần còn lại (~6%) ngẫu nhiên 250-5000đ; 1% là vật phẩm */
+function genPts(n,r){const q=[.3,.15,.15,.15,.1,.08],v=[1,2,5,10,50,200],a=[];
   for(let k=0;k<6;k++){const m=Math.round(n*q[k]);for(let j=0;j<m&&a.length<n;j++)a.push(v[k])}
   while(a.length<n)a.push(250+Math.floor(r()*4751));
   return a}
@@ -724,7 +752,7 @@ function placeTry(p,r,L,ax,ay,am,tries,kw){
     return{x,y,w:hw,h:hh,need:t[1],pts:p,c,d:shade(c,.6),sh:sp,hz:hz0,f:-1,i,vx:0,vy:0,ms:(!big&&B.mv&&B.mv[i])?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free,big}}
   return null}
 function gen(n){
-  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);const PL=genPts(MAX_ENT-1-3,r);let ar=0;for(const p of PL){const q=objR(p)*1.02;ar+=Math.PI*q*q}WS=Math.max(1300+d*10,Math.ceil(Math.sqrt(ar/MAP_DENS)/10)*10);theme=THEMES[((n-1)/35|0)%5];
+  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);const N0=MAX_ENT-1-3,NI=Math.max(1,Math.round(N0*.01)),PL=genPts(N0-NI,r);let ar=0;for(const p of PL){const q=objR(p)*1.02;ar+=Math.PI*q*q}WS=Math.max(1300+d*10,2400,Math.ceil(Math.sqrt(ar/MAP_DENS)/10)*10);theme=THEMES[((n-1)/35|0)%5];
   const L=[];
   const dR=v=>{const m=v%G;return Math.min(m,G-m)},nl=Math.floor(WS/G);
   let hx=G*(nl>>1),hy=G*(nl>>1);
@@ -771,6 +799,7 @@ function gen(n){
   L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;
   for(const o of L){if(o.pts>=S)o.pts=Math.max(1,S-1);S+=o.pts}
   const keep=L;
+  items=[];for(let k=0;k<NI;k++){const it=placeItem(L,r,hx,hy,120);if(it)items.push(it)}
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
   maxMapObjectPts=objs.reduce((m,o)=>Math.max(m,o.pts),START_PTS);botMaxR=rad(maxMapObjectPts-1);holeMaxR=rad(Math.ceil(maxMapObjectPts*1.3)-1);
   hole={x:hx,y:hy,vx:0,vy:0,R:rad(START_PTS-1),tr:Math.min(rad(START_PTS-1),holeMaxR)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:(B.deco==='w'||B.deco==='d')?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
@@ -889,7 +918,7 @@ function newBot(far,fixedP){
 function initBots(){
   botT=0;bots=[];
   for(const p of[1,1,2])bots.push(newBot(450,p));
-  botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5;
+  botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5;boostT=shieldT=slowPlT=0;warnBot=warnObj=p2Hint=false;
 }
 function confetti(){const c=$('cf'),n=cfg.fps>60?60:(cfg.q<1.2?14:36),cs=['#ff4d5e','#ffd166','#4dff9a','#4cc9f0','#b79bff','#ff8ad8'];let h='';
   for(let i=0;i<n;i++)h+='<i style="left:'+(Math.random()*100)+'%;background:'+cs[i%6]+';animation-duration:'+(2.2+Math.random()*2.5)+'s;animation-delay:'+(Math.random()*1.2)+'s"></i>';
@@ -901,7 +930,7 @@ function showRes(ok){if(!$('game').classList.contains('on'))return;$('game').cla
 function lose(t,d){dead=true;live=false;$('wt').textContent=t||'Bạn bị nuốt!';$('wd').textContent=d||'Hố đen lớn hơn đã nuốt bạn. Hãy ăn thêm để lớn hơn rồi thử lại.';$('nx').style.display='none';setTimeout(()=>showRes(false),600)}
 function canSpare(ex){const a=[];for(const o of objs)if(o!==ex&&o.f<0)a.push(o.pts);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
 function canBeatBots(){const a=[];for(const b of bots)if(b.f<0)a.push(b.P);a.sort((x,y)=>x-y);let S=score;for(const p of a){if(p<S)S+=p;else return false}return true}
-function botCap(b){return b.P>=Math.max(30,totalPts*.5)}
+function botCap(b){return botT<=MAX_TIME&&b.P>=Math.max(30,totalPts*.5)}
 function countBiggerBots(){let n=0;for(const x of bots)if(x.f<0&&x.P>score)n++;return n}
 function canBotGrowTo(b,newP){if(newP<=score||b.P>score)return true;return countBiggerBots()<2}
 function botScale(b){if(b.P<=score||score<=0)return 1;const over=(b.P-score)/score;return Math.max(.05,1-over*10)}
@@ -927,8 +956,10 @@ function refreshCaps(){let m=maxMapObjectPts;for(const o of objs)if(o.f<1&&o.pts
 function respawnObjs(){
   if(won||dead||botT>MAX_TIME)return;
   let alive=0,occ=0;for(const o of objs){if(o.f<0)alive++;if(o.f<1)occ++}
+  if(alive<RESPAWN_BELOW+10&&!warnObj){warnObj=true;showHint('⚠ Sắp sinh thêm vật thể và vật phẩm mới!',2600)}
   if(alive>=RESPAWN_BELOW)return;
-  const n=MAX_ENT-1-aliveBots()-occ;if(n<=0)return;
+  const room=MAX_ENT-1-aliveBots()-occ-items.length;if(room<=0)return;
+  const k=Math.floor(room*.01)+(Math.random()<(room*.01)%1?1:0),n=room-k;
   const PL=genPts(n,Math.random).sort((x,y)=>y-x),add=[],all=objs.filter(o=>o.f<1);
   for(const p0 of PL){let p=p0,o=null;
     for(let a=0;a<4&&!o;a++){o=placeTry(p,Math.random,all,hole.x,hole.y,hole.R+60,30,true);if(!o)p=Math.max(1,Math.round(p*.5))}
@@ -937,14 +968,15 @@ function respawnObjs(){
   for(const o of add)if(o.big)addClear(o);
   initMove(add);objs=all.concat(add);objs.sort((x,y)=>x.y-y.y);
   total+=add.length;for(const o of add)totalPts+=o.pts;
-  refreshCaps();setProg();showHint('✨ Vật thể mới xuất hiện trên map!',2000)}
+  let ni=0;for(let j=0;j<k;j++){const it=placeItem(objs,Math.random,hole.x,hole.y,hole.R+120);if(it){items.push(it);ni++}}
+  warnObj=false;refreshCaps();setProg();showHint('✨ Đã sinh thêm '+add.length+' vật thể'+(ni?' và '+ni+' vật phẩm':'')+'!',2400)}
 function spawnBots(){
-  const room=MAX_ENT-1-aliveObjs()-aliveBots(),n=Math.min(SPAWN_N,BOT_MAX-bots.length,room);if(n<=0)return 0;
+  const room=MAX_ENT-1-aliveObjs()-aliveBots()-items.length,n=Math.min(SPAWN_N,BOT_MAX-bots.length,room);if(n<=0)return 0;
   for(let i=0;i<n;i++){const ratio=botT>10?(.05+Math.random()*.25):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
-  botsTotal+=n;setProg();showHint('⚠ '+n+' hố đen đối thủ mới xuất hiện!',2500);return n}
+  botsTotal+=n;setProg();warnBot=false;showHint('⚠ '+n+' hố đen đối thủ mới xuất hiện!',2800);return n}
 function nearPrey(b){if(botCap(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
 function botEatBot(b){
-  if(b.cd>0||botCap(b))return;const need=(b.fd&&b.fd.f<0)?.4:.8;
+  if(b.cd>0||botCap(b)||b.pref!=='b')return;const need=(b.fd&&b.fd.f<0)?.4:.8;
   for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;
     const g=c.P;
     if(Math.hypot(c.x-b.x,c.y-b.y)>=b.R*need)continue;
@@ -954,16 +986,23 @@ function botEatBot(b){
 }
 function updBots(dt){
   if(grace>0)grace-=dt;botT+=dt;
-  if(!dead&&!won&&eaten<total&&botT<=MAX_TIME){spawnT+=dt;if(spawnT>=SPAWN_EVERY&&spawnBots())spawnT-=SPAWN_EVERY}
+  if(!p2Hint&&botT>MAX_TIME&&!dead&&!won){p2Hint=true;showHint('⏱ Hết 2 phút! Hố đen đối thủ bắt đầu săn bạn, không sinh thêm gì nữa.',4500)}
+  if(!dead&&!won&&eaten<total&&botT<=MAX_TIME){spawnT+=dt;
+    if(!warnBot&&spawnT>=SPAWN_EVERY-3&&BOT_MAX-bots.length>0){warnBot=true;showHint('⚠ Hố đen đối thủ sắp xuất hiện!',2800)}
+    if(spawnT>=SPAWN_EVERY&&spawnBots())spawnT-=SPAWN_EVERY}
   for(const b of bots){
     if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
     if(b.sp>0){b.sp-=dt;continue}
-    if(b.cd>0)b.cd-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
-    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE*botScale(b);
+    if(b.cd>0)b.cd-=dt;if(b.slowT>0)b.slowT-=dt;b.R+=(b.tr-b.R)*Math.min(1,dt*6);
+    const dx=hole.x-b.x,dy=hole.y-b.y,l=Math.hypot(dx,dy)||1;let mx,my,spd=(130+hole.R*.9)*BOT_MOVE*botScale(b)*(b.slowT>0?.3:1);
     b.fdT=(b.fdT||0)-dt;if(b.fdT<=0){b.fdT=.4+Math.random()*.2;b.fd=nearFood(b)}const fd=b.fd&&b.fd.f<0?b.fd:null;
     if(score>b.P&&l<hole.R*2.5+160){mx=-dx/l;my=-dy/l}
-    else if(b.P>score&&(l<b.R*1.8+40||(!fd&&botT>20&&l<300+b.R*3))){mx=dx/l;my=dy/l}
-    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const f=nearFood(b),q=f?null:nearPrey(b);if(f){b.tx=f.x;b.ty=f.y}else if(q){b.tx=q.x;b.ty=q.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}}
+    else if(b.P>score&&botT<=MAX_TIME&&(l<hole.R+b.R+210||(!fd&&botT>20&&l<300+b.R*3))){
+      /* 2 phút đầu: đuổi theo nhưng luôn giữ khoảng cách để người chơi chạy thoát */
+      const keep=hole.R+b.R+150,f=Math.max(-1,Math.min(1,(l-keep)/90));mx=dx/l*f;my=dy/l*f}
+    else if(b.P>score&&botT>MAX_TIME&&(l<b.R*1.8+40||(!fd&&l<300+b.R*3))){mx=dx/l;my=dy/l}
+    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const pO=botT<=MAX_TIME?.9:.5;let f=null,q=null;if(Math.random()<pO){f=nearFood(b);if(!f)q=nearPrey(b)}else{q=nearPrey(b);if(!q)f=nearFood(b)}b.pref=q?'b':'o';if(f){b.tx=f.x;b.ty=f.y}else if(q){b.tx=q.x;b.ty=q.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}
+      if(Math.random()<.3){const sn=items.find(i=>i.f<0&&i.type==='snow'&&Math.hypot(i.x-b.x,i.y-b.y)<700);if(sn){b.tx=sn.x;b.ty=sn.y}}}
       const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl}
     const k=Math.min(1,dt*(B.mech==='ice'?1.5:4));b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;
     let bvx=b.vx,bvy=b.vy;if(B.mech==='belt'){const bl=beltVel(b.x,b.y);if(bl){bvx+=bl.vx;bvy+=bl.vy}}
@@ -972,17 +1011,18 @@ function updBots(dt){
     if(B.mech==='island')resolveLand(b);
     if(!won)botEat(b);
     if(!won&&!dead)botEatBot(b);
+    for(const it of items){if(it.f>=0||(it.type!=='snow'&&it.type!=='bomb'))continue;if(Math.hypot(it.x-b.x,it.y-b.y)<b.R)botPick(it,b)}
     if(dead)continue;
     if(score>b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;for(const o of objs)if(o.tg===b)o.tg=null;const p=b.P;score+=p;
       hole.tr=Math.min(rad(score-1),holeMaxR);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
-    else if(b.P>score&&l<b.R&&grace<=0)lose()}
+    else if(b.P>score&&l<b.R&&grace<=0&&botT>MAX_TIME&&shieldT<=0)lose()}
   if(bots.some(b=>b.gone)){const n0=bots.length;bots=bots.filter(b=>!b.gone);botsEaten+=n0-bots.length;setProg()}
 }
 function update(dt){
   if(dead){hole.R=Math.max(.5,hole.R*(1-Math.min(1,dt*3)));for(const f of fx)f.t+=dt;updBots(dt);return}
   {let tvx=0,tvy=0;
     if(js){const dx=js.x-js.sx,dy=js.y-js.sy,l=Math.hypot(dx,dy);
-      if(l>6){const m=Math.min(l/60,1),sp=(130+hole.R*.9)*m;tvx=dx/l*sp;tvy=dy/l*sp;
+      if(l>6){const m=Math.min(l/60,1),sp=(130+hole.R*.9)*m*(boostT>0?3:1)*(slowPlT>0?.35:1);tvx=dx/l*sp;tvy=dy/l*sp;
         if(l>90){js.sx+=dx/l*(l-90);js.sy+=dy/l*(l-90)}}}
     if(B.mech==='ice'){
       const k=Math.min(1,dt*(js?5.2:1.5));hole.vx+=(tvx-hole.vx)*k;hole.vy+=(tvy-hole.vy)*k;
@@ -997,6 +1037,7 @@ function update(dt){
   hole.x=Math.max(0,Math.min(WS,hole.x));hole.y=Math.max(0,Math.min(WS,hole.y));
   if(B.mech==='maze')resolveWalls(hole,Math.min(hole.R*.72,50));
   if(B.mech==='island')resolveLand(hole);
+  if(boostT>0)boostT-=dt;if(shieldT>0)shieldT-=dt;if(slowPlT>0)slowPlT-=dt;
   hole.R+=(hole.tr-hole.R)*Math.min(1,dt*6);if(hole.pulse>0)hole.pulse=Math.max(0,hole.pulse-dt*2.5);
   for(const q of spk){q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt}if(spk.length&&spk[0].t>.5)spk=spk.filter(q=>q.t<.5);
   const R=Math.max(hole.R,hole.tr),lim=R+80;
@@ -1013,6 +1054,10 @@ function update(dt){
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
     if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=Math.min(rad(score-1),holeMaxR);combo=Math.min(combo+1,12);sfx(combo);
       fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});setProg()}}
+  if(items.length){for(const it of items){if(it.f>=1)continue;
+    if(it.f>=0){it.f+=dt*4;it.x+=(hole.x-it.x)*Math.min(1,dt*9);it.y+=(hole.y-it.y)*Math.min(1,dt*9);continue}
+    if(Math.abs(it.x-hole.x)<R&&Math.abs(it.y-hole.y)<R&&Math.hypot(it.x-hole.x,it.y-hole.y)<R)pickItem(it)}
+    if(items.some(i=>i.f>=1))items=items.filter(i=>i.f<1)}
   stuckT+=dt;if(stuckT>1){stuckT=0;objs=objs.filter(o=>o.f<1);if(!won){let mn=1e9,anim=false;for(const o of objs){if(o.f>=1)continue;if(o.f>=0){anim=true;break}if(o.pts<mn)mn=o.pts}
     if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=Math.min(rad(score-1),holeMaxR);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
   if(!won)updBots(dt);
@@ -2766,8 +2811,18 @@ function draw(){
   for(let k=0;k<nr;k++){const a0=TT*(2-k*.6)+k*2;ctx.globalAlpha=Math.max(.12,.48-k*.1);ctx.lineWidth=Math.max(1.5,R*.04);ctx.beginPath();ctx.arc(hx,hy,R*(.64-k*st*.58),a0,a0+1.6);ctx.stroke()}
   ctx.globalAlpha=1;
   if(hole.pulse>0){ctx.globalAlpha=hole.pulse*.55;ctx.strokeStyle=SK[skinI][3];ctx.lineWidth=Math.max(2,R*.06);ctx.beginPath();ctx.arc(hx,hy,R*(1.05+(1-hole.pulse)*.5),0,7);ctx.stroke();ctx.globalAlpha=1}
+  if(boostT>0){ctx.globalAlpha=.55;ctx.strokeStyle='#ffb703';ctx.lineWidth=Math.max(3,R*.08);ctx.setLineDash([R*.3,R*.2]);ctx.beginPath();ctx.arc(hx,hy,R*1.25,TT*6,TT*6+6.283);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1}
+  if(slowPlT>0){ctx.globalAlpha=.75;ctx.strokeStyle='#bde0fe';ctx.lineWidth=Math.max(3,R*.1);ctx.beginPath();ctx.arc(hx,hy,R*1.15,0,7);ctx.stroke();ctx.globalAlpha=1}
+  if(shieldT>0&&(shieldT>1.5||Math.sin(TT*20)>0)){ctx.strokeStyle='#4cc9f0';ctx.lineWidth=Math.max(4,R*.1);ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(hx,hy,R*1.4,0,7);ctx.stroke();ctx.globalAlpha=.15;ctx.fillStyle='#4cc9f0';ctx.fill();ctx.globalAlpha=1}
   for(const b of bots)if(!(b.sp>0)&&Math.abs(b.x-cam.x)<vx+b.R*2&&Math.abs(b.y-cam.y)<vy+b.R*2)drawBot(b);
   for(const o of objs)if(o.f<0&&vis(o))drawObj(o,1);
+  for(const b of bots)if(b.slowT>0&&b.f<0&&!(b.sp>0)){ctx.strokeStyle='#bde0fe';ctx.lineWidth=Math.max(3,b.R*.1);ctx.globalAlpha=.8;ctx.beginPath();ctx.arc(b.x,b.y,b.R*1.15,0,7);ctx.stroke();ctx.globalAlpha=1}
+  for(const it of items){if(it.f>=1||Math.abs(it.x-cam.x)>vx+40||Math.abs(it.y-cam.y)>vy+40)continue;
+    const sz=Math.max(0,1-Math.max(0,it.f)),col=ITEM_COL[it.type];
+    ctx.save();ctx.translate(it.x,it.y+Math.sin(TT*3+it.t)*4);ctx.scale(sz,sz);
+    ctx.globalAlpha=.35+.15*Math.sin(TT*5+it.t);ctx.fillStyle=col;ctx.beginPath();ctx.arc(0,0,30,0,7);ctx.fill();ctx.globalAlpha=1;
+    ctx.lineWidth=3;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(0,0,26,0,7);ctx.stroke();
+    ctx.font='28px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText(ITEM_EM[it.type],0,2);ctx.restore()}
   let lf='';const SF=f=>{if(f!==lf)ctx.font=lf=f};
   if(showLb){ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';
     for(const o of objs){if(o.f>=0||!vis(o))continue;const fs=Math.max(8/sc,Math.min(13/sc,o.w*1.5+8)),y=o.y-o.h-o.hz*.9-fs*.7;

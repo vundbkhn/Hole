@@ -112,6 +112,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .sc div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
 .sc:active{transform:scale(.96)}
 .sc canvas{position:static;width:100%;height:auto;aspect-ratio:1;display:block}
+/* v34: canvas toàn cục có touch-action:none nên vuốt bắt đầu trên thumbnail skin không cuộn được → cho phép cuộn dọc */
+#skm canvas,#set canvas,#srm canvas,#win canvas,#map canvas{touch-action:pan-y}.sc canvas{pointer-events:none}
 .sc.on{border-color:#4dff9a;background:radial-gradient(circle at 50% 42%,#482594,#251152 78%);box-shadow:0 0 0 3px rgba(77,255,154,.35),0 4px 14px rgba(0,0,0,.5)}
 .sc.on::after{content:"ĐANG DÙNG";position:absolute;top:4px;left:50%;transform:translateX(-50%);background:#2e9b6a;color:#fff;font-size:8.5px;font-weight:800;padding:1.5px 6px;border-radius:8px;letter-spacing:.3px;box-shadow:0 2px 4px rgba(0,0,0,.45);white-space:nowrap}
 .sc.rnd{grid-column:1/-1;padding:11px;font-size:14px;font-weight:700;background:linear-gradient(180deg,#341a6b,#211047)}

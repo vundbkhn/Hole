@@ -89,8 +89,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .go span{font-size:13px;opacity:.75;line-height:1.35;display:block}
 .go.on{border-color:#8a5cff;background:#3b1d7a;box-shadow:0 0 0 3px rgba(138,92,255,.3)}
 
-#bkw{margin-top:6px;padding-top:10px;border-top:1.5px solid #4b3a78}
-#bkw h3{margin:0 0 4px;font-size:18px;text-align:center}
+#stabs{display:flex;gap:6px;margin-bottom:12px;background:#160a30;border-radius:14px;padding:4px}
+#stabs button{flex:1;border:0;border-radius:11px;padding:9px 4px;background:transparent;color:#b9a8e6;font:700 13px inherit;font-family:inherit;cursor:pointer;touch-action:manipulation}
+#stabs button.on{background:#7746f5;color:#fff;box-shadow:0 2px 8px rgba(120,70,240,.45)}
+#set .sp{display:none}#set .sp.on{display:block}
+.row2{display:flex;gap:8px}.row2 .go{flex:1;margin:0;text-align:center}.row2 .go b{margin:0;font-size:15px}
+#vnum{text-align:center;font:800 28px/1.2 ui-monospace,Menlo,monospace;color:#ffe27a;margin:4px 0 6px}
+#gl .go{padding:9px 12px;margin-bottom:8px}#gl .go b{font-size:15px;margin-bottom:2px}#gl .go span{font-size:12px;line-height:1.3}
+#vers{margin-bottom:10px}
 #bkt{display:block;width:100%;margin:0 0 10px;padding:12px;border-radius:14px;border:2px solid #4b3a78;background:#160a30;color:#ffe27a;font:700 30px/1.2 ui-monospace,Menlo,monospace;letter-spacing:6px;text-align:center;text-transform:uppercase;user-select:text;-webkit-user-select:text;outline:none}#bkt::placeholder{font-size:16px;letter-spacing:1px;color:#7d6fa8;font-weight:400}
 #bkt:focus{border-color:#8a5cff}
 #bkm{min-height:18px;text-align:center;font-size:13px;font-weight:700;margin:-2px 0 10px;color:#9be7ff}
@@ -140,7 +146,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 #hud{padding:calc(var(--st) + 8px) max(18px,calc(var(--sr) + 12px)) 0 max(18px,calc(var(--sl) + 12px));gap:9px}
 #set .box{max-width:min(820px,92vw)}#set h2{margin-bottom:10px}
 #gl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
-#gl .go{margin:0;height:100%;display:flex;flex-direction:column;justify-content:flex-start}
+#gl .go{margin:0;height:100%;display:flex;flex-direction:column;justify-content:flex-start}#set .box{max-width:min(620px,92vw)}
 #skm .box{max-width:min(860px,94vw)}#sg{grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
 #sx,#skx{width:280px;max-width:75%;margin:0 auto}
 #wc{max-width:720px;flex-direction:row;gap:22px;align-items:center}
@@ -183,16 +189,19 @@ body[data-gfx=low] #win.w #wi{filter:none}
 <div class="sract"><button class="btn" id="srgo">📍 Đi tới trên bản đồ</button><button class="btn alt" id="srplay">▶ Chơi ngay</button></div>
 <div class="mfoot"><button class="btn alt" id="srx">Đóng</button></div></div></div>
 <div id="skm"><div class="box"><h2>🎨 Quản lý Skin Hố Đen</h2><div class="sub">Chọn 1 trong 33 skin 3D để dùng cố định, hoặc bật ngẫu nhiên mỗi màn</div><div id="skst"></div><div id="sg"></div><div class="mfoot"><button class="btn" id="skx">Đóng</button></div></div></div>
-<div id="set"><div class="box"><h2>⚙ Cài đặt đồ hoạ</h2><div class="sub">Chọn chế độ phù hợp với máy của bạn</div><div id="gl"></div>
-<div id="bkw"><h3>💾 Sao lưu &amp; khôi phục</h3><div class="sub">Tạo mã 6 ký tự lưu tiến độ, skin và đồ hoạ. Sau khi cài lại game, nhập mã này để chơi tiếp.</div>
+<div id="set"><div class="box"><h2>⚙ Cài đặt</h2>
+<div id="stabs"><button data-t="g" class="on">🎨 Đồ hoạ</button><button data-t="b">💾 Sao lưu</button><button data-t="v">🔖 Phiên bản</button></div>
+<div class="sp on" id="sp-g"><div id="gl"></div></div>
+<div class="sp" id="sp-b"><div class="sub">Mã 6 ký tự lưu tiến độ, skin và đồ hoạ. Cài lại game, nhập mã để chơi tiếp.</div>
 <input id="bkt" type="text" placeholder="MÃ 6 KÝ TỰ" maxlength="90" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
 <div id="bkm"></div>
-<button class="go" id="bkb"><b>📤 Tạo mã sao lưu</b><span>Mã đổi theo tiến độ, hãy tạo lại sau khi chơi thêm. Ghi mã vào Ghi chú để giữ.</span></button>
-<button class="go" id="bkr"><b>📥 Khôi phục từ mã</b><span>Nhập mã vào ô phía trên rồi bấm. Tiến độ hiện tại sẽ bị thay thế.</span></button></div>
+<div class="row2"><button class="go" id="bkb"><b>📤 Tạo mã</b></button><button class="go" id="bkr"><b>📥 Khôi phục</b></button></div></div>
+<div class="sp" id="sp-v"><div id="vnum"></div><div id="vers" class="sub">Đang kiểm tra…</div>
+<button class="go" id="verb"><b>🔄 Cập nhật lên bản mới nhất</b><span>Xoá bộ nhớ đệm cũ và tải lại game. Tiến độ chơi không bị mất.</span></button></div>
 <div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script type="text/plain" id="main">
 const $=id=>document.getElementById(id);
-const MAXL=10000,START_PTS=5;
+const MAXL=10000,START_PTS=2,MAX_ENT=100,MAX_TIME=120,RESPAWN_BELOW=15,APP_VER='v28';
 let done=0,musicOn=true,showLb=true;
 try{done=+localStorage.getItem('bh_done')||0;showLb=localStorage.getItem('bh_lb')!=='0';musicOn=localStorage.getItem('bh_music')!=='0'}catch(e){}
 const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_lb',showLb?1:0);localStorage.setItem('bh_music',musicOn?1:0)}catch(e){}};
@@ -365,7 +374,7 @@ function wakeAudio(e){
 }
 ['touchend','pointerup','click','keydown'].forEach(ev=>document.addEventListener(ev,wakeAudio,{passive:true,capture:true}));
 function tap(el,fn,silent){
-  let id=null,sx=0,sy=0,lf=-1e9;
+  let id=null,sx=0,sy=0,lf=-1e9,pu=0;
   const go=e=>{
     wakeAudio(e);
     const t=performance.now();if(t-lf<420)return;lf=t;
@@ -373,9 +382,9 @@ function tap(el,fn,silent){
     fn(e);
   };
   el.addEventListener('pointerdown',e=>{id=e.pointerId;sx=e.clientX;sy=e.clientY});
-  el.addEventListener('pointerup',e=>{if(id!==e.pointerId)return;id=null;if(Math.hypot(e.clientX-sx,e.clientY-sy)<14)go(e)});
+  el.addEventListener('pointerup',e=>{if(id!==e.pointerId)return;id=null;if(Math.hypot(e.clientX-sx,e.clientY-sy)<14){pu=performance.now();go(e)}});
   el.addEventListener('pointercancel',()=>{id=null});
-  el.addEventListener('click',e=>go(e));
+  el.addEventListener('click',e=>{if(pu&&performance.now()-pu<3000){pu=0;return}go(e)});
 }
 tap($('mm'),toggleMusic,true);tap($('gm'),toggleMusic,true);
 syncMusicBtns();
@@ -576,7 +585,7 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 
 /* ---------- game ---------- */
 const cv=$('cv');let ctx=cv.getContext('2d',{alpha:false});const mainCtx=ctx;
-let slowT=0,RS=1,RSmax=1,emaI=16.7,lastRaw=0,okT=0,lastUp=-1e9,coolT=0,live=false,paused=false,vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,B,deco=[],sceneMarks=[],walls=[],islands=[],bridges=[],landRects=[],belts=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
+let slowT=0,RS=1,RSmax=1,emaI=16.7,lastRaw=0,okT=0,lastUp=-1e9,coolT=0,live=false,paused=false,vig,gPat,lPat,spk=[],TT=0,bots=[],dead=false,grace=0,totalPts=0,holeMaxR=rad(1),maxMapObjectPts=1,botMaxR=rad(1),B,deco=[],sceneMarks=[],walls=[],islands=[],bridges=[],landRects=[],belts=[],CW=innerWidth,CH=innerHeight,DPR=1,lvl=1,objs=[],fx=[],hole=null,score,total,eaten,WS,theme,cam,sc,js=null,running=false,last=0,won=false,G=320,RW=70,combo=0;
 const GFX={ultra:{dmin:1.5,dmax:3,dfl:1,px:4.2e6,fps:120,sq:'high',q:3.2,tex:2,vig:.48,sp:12,spc:140,rings:5,bloom:1,light:1,shadow:2,detail:2,swirl:1,spr:1},
   normal:{dmin:1,dmax:2.5,dfl:.75,px:2.4e6,fps:60,sq:'medium',q:2.4,tex:2,vig:.42,sp:8,spc:70,rings:4,bloom:1,light:1,shadow:2,detail:2,swirl:1,spr:1},
   low:{dmin:1,dmax:1.5,dfl:.6,px:1.1e6,fps:60,sq:'low',q:1.6,tex:1,vig:0,sp:0,spc:0,rings:2,bloom:0,light:0,shadow:1,detail:1,swirl:0,spr:1}};
@@ -620,7 +629,7 @@ function syncCanvasSize(w,h){
   if(ch)cv.width=bw,cv.height=bh;
   ctx.imageSmoothingQuality=cfg.sq;
   if(cfg.vig){vig=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.4,CW/2,CH/2,Math.hypot(CW,CH)*.56);vig.addColorStop(0,'rgba(8,2,22,0)');vig.addColorStop(1,'rgba(8,2,22,'+cfg.vig+')')}else vig=null;
-  if(hole)sc=Math.min(CW,CH)/(260+hole.R*6);
+  if(hole)sc=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);
   return ch;
 }
 let mapH=0;
@@ -676,9 +685,47 @@ function beltVel(x,y){
   for(const b of belts)if(x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1)return b;
   return null;
 }
+/* ---------- sinh vật thể theo quy tắc điểm mới ---------- */
+const MAP_DENS=.16,GAP=16;
+let clears=[];
+/* vật to: dọn đường dưới chân vật (vẽ nền đè lên đường) và gỡ vách mê cung chạm vật */
+function addClear(o){
+  if(!B.free)clears.push({x0:o.x-o.w-26,y0:o.y-o.h-26,x1:o.x+o.w+26,y1:o.y+o.h+26});
+  if(B.mech==='maze')walls=walls.filter(w=>!(w.x1>o.x-o.w-16&&w.x0<o.x+o.w+16&&w.y1>o.y-o.h-16&&w.y0<o.y+o.h+16))}
+const objR=p=>Math.max(5,3.2*Math.sqrt(p));
+const tierOf=p=>p<=1?0:p<=5?1:p<=10?2:p<=50?3:p<=200?4:5,TIER_TYPES=[[0,1,2],[1,2,3],[4,5],[6,7],[7,8],[8,9]];
+/* 20% = 1đ, 10% = 2đ, 10% = 5đ, 10% = 10đ, 15% = 50đ, 15% = 200đ, 20% còn lại ngẫu nhiên 250-5000đ */
+function genPts(n,r){const q=[.2,.1,.1,.1,.15,.15],v=[1,2,5,10,50,200],a=[];
+  for(let k=0;k<6;k++){const m=Math.round(n*q[k]);for(let j=0;j<m&&a.length<n;j++)a.push(v[k])}
+  while(a.length<n)a.push(250+Math.floor(r()*4751));
+  return a}
+function placeTry(p,r,L,ax,ay,am,tries,kw){
+  const nl=Math.floor(WS/G),dR=v=>{const m=v%G;return Math.min(m,G-m)};
+  const tl=TIER_TYPES[tierOf(p)],i=tl[(r()*tl.length)|0],t=T[i],rr=objR(p)*(.92+r()*.16),big=rr>60;
+  const sp=B.all||(B.sh&&B.sh[i])||t[4];
+  for(let k=0;k<tries;k++){
+    let x,y,hw=rr,hh=rr,c=B.col?B.col[i]:t[3];
+    if(i===3){hw=rr*1.6;hh=rr*.7}
+    if(B.mech==='island'){
+      const isl=islands[(i<=3&&r()<.48)?0:((r()*islands.length)|0)];
+      const pd=Math.max(hw,hh)+26;
+      x=isl.x0+pd+r()*Math.max(10,isl.x1-isl.x0-pd*2);
+      y=isl.y0+pd+r()*Math.max(10,isl.y1-isl.y0-pd*2);
+    }else if((i===5||i===6)&&!B.free){const hor=r()<.5,ln=(1+(r()*(nl-1)|0))*G+(r()-.5)*RW*.5,al=60+r()*(WS-120),a=rr*(i===6?1.9:1.3),b=rr*.6;
+      x=hor?al:ln;y=hor?ln:al;hw=hor?a:b;hh=hor?b:a;if(i===5&&!B.col)c=CARC[r()*6|0]}
+    else{x=60+r()*(WS-120);y=60+r()*(WS-120);
+      if(i>=3&&!big&&!B.free){const m=RW/2+Math.max(hw,hh)+4;if(dR(x)<m||dR(y)<m)continue}}
+    if(sp==='c')hw=hh=Math.max(hw,hh);
+    const hz0=t[5]*rr/t[0];
+    if(Math.hypot(x-ax,y-ay)<am+(big?rr:0))continue;
+    if(B.mech==='maze'){const pd=(big&&!kw)?20:Math.max(hw,hh)+12;let hit=false;for(const wl of walls)if(x+pd>wl.x0&&x-pd<wl.x1&&y+pd>wl.y0&&y-pd<wl.y1){hit=true;break}if(hit)continue}
+    let ok=true;for(const o of L)if(o.f<1&&Math.abs(o.x-x)<o.w+hw+GAP&&Math.abs(o.y-y)<o.h+hh+GAP+(o.hz+hz0)*.5){ok=false;break}
+    if(!ok)continue;
+    return{x,y,w:hw,h:hh,need:t[1],pts:p,c,d:shade(c,.6),sh:sp,hz:hz0,f:-1,i,vx:0,vy:0,ms:(!big&&B.mv&&B.mv[i])?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free,big}}
+  return null}
 function gen(n){
-  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);WS=1300+d*10;theme=THEMES[((n-1)/35|0)%5];
-  const N=Math.min(170+d*3,600),w=T.map((t,i)=>[10,10,7,5,8,7,3,4,3,1][i]*[1,1,1,1,1,1,1.6,2.5,3.5,5][i]*(.55+Math.min(n,150)/35)**(i/4)),sw=w.reduce((a,b)=>a+b),L=[];
+  B=bio(n);RW=B.LW||70;const d=Math.min(n,300),r=rng(n*7919+13);const PL=genPts(MAX_ENT-1-3,r);let ar=0;for(const p of PL){const q=objR(p)*1.02;ar+=Math.PI*q*q}WS=Math.max(1300+d*10,Math.ceil(Math.sqrt(ar/MAP_DENS)/10)*10);theme=THEMES[((n-1)/35|0)%5];
+  const L=[];
   const dR=v=>{const m=v%G;return Math.min(m,G-m)},nl=Math.floor(WS/G);
   let hx=G*(nl>>1),hy=G*(nl>>1);
   walls=[];islands=[];bridges=[];landRects=[];belts=[];
@@ -716,27 +763,17 @@ function gen(n){
       {x0:m,y0:m+bw+16,x1:m+bw,y1:WS-m-bw-16,vx:0,vy:-spd}
     ];
   }
-  for(let k=0;k<N*4&&L.length<N;k++){
-    let q=r()*sw,i=0;while(q>w[i]){q-=w[i];i++}
-    const t=T[i],s=.9+r()*.25,rr=t[0]*s;let x,y,hw=rr,hh=rr,c=B.col?B.col[i]:t[3];
-    if(i===3){hw=rr*1.6;hh=rr*.7}
-    if(B.mech==='island'){
-      const isl=islands[(i<=3&&r()<.48)?0:((r()*islands.length)|0)];
-      const pd=Math.max(hw,hh)+26;
-      x=isl.x0+pd+r()*Math.max(10,isl.x1-isl.x0-pd*2);
-      y=isl.y0+pd+r()*Math.max(10,isl.y1-isl.y0-pd*2);
-    }else if((i===5||i===6)&&!B.free){const hor=r()<.5,ln=(1+(r()*(nl-1)|0))*G+(r()-.5)*RW*.5,al=60+r()*(WS-120),a=rr*(i===6?1.9:1.3),b=rr*.6;
-      x=hor?al:ln;y=hor?ln:al;hw=hor?a:b;hh=hor?b:a;if(i===5&&!B.col)c=CARC[r()*6|0]}
-    else{x=60+r()*(WS-120);y=60+r()*(WS-120);
-      if(i>=3&&!B.free){const m=RW/2+Math.max(hw,hh)+4;if(dR(x)<m||dR(y)<m){k++;continue}}}
-    const sp=B.all||(B.sh&&B.sh[i])||t[4];if(sp==='c')hw=hh=Math.max(hw,hh);if(Math.hypot(x-hx,y-hy)<90)continue;
-    if(B.mech==='maze'){const pd=Math.max(hw,hh)+12;let hit=false;for(const wl of walls)if(x+pd>wl.x0&&x-pd<wl.x1&&y+pd>wl.y0&&y-pd<wl.y1){hit=true;break}if(hit)continue}
-    let ok=true;for(const o of L)if(Math.abs(o.x-x)<o.w+hw+2&&Math.abs(o.y-y)<o.h+hh+2){ok=false;break}
-    if(ok)L.push({x,y,w:hw,h:hh,need:t[1],pts:t[2],c,d:shade(c,.6),sh:sp,hz:t[5],f:-1,i,vx:0,vy:0,ms:B.mv&&B.mv[i]?B.mv[i]*(.7+r()*.6):0,tm:r()*3,ln:(i===5||i===6)&&!B.free})}
-  L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;const keep=[];
-  for(const o of L){if(o.pts<S){keep.push(o);S+=o.pts}}
+  {const ord=PL.slice().sort((x,y)=>y-x);
+    for(const p0 of ord){let p=p0,o=null;
+      for(let a=0;a<4&&!o;a++){o=placeTry(p,r,L,hx,hy,90,45);if(!o)p=Math.max(1,Math.round(p*.5))}
+      if(o)L.push(o)}}
+  clears=[];for(const o of L)if(o.big)addClear(o);
+  L.sort((a,b)=>a.pts-b.pts);let S=START_PTS;
+  for(const o of L){if(o.pts>=S)o.pts=Math.max(1,S-1);S+=o.pts}
+  const keep=L;
   keep.sort((a,b)=>a.y-b.y);objs=keep;total=keep.length;totalPts=S;
-  hole={x:hx,y:hy,vx:0,vy:0,R:rad(START_PTS-1),tr:rad(START_PTS-1)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:(B.deco==='w'||B.deco==='d')?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
+  maxMapObjectPts=objs.reduce((m,o)=>Math.max(m,o.pts),START_PTS);botMaxR=rad(maxMapObjectPts-1);holeMaxR=rad(Math.ceil(maxMapObjectPts*1.3)-1);
+  hole={x:hx,y:hy,vx:0,vy:0,R:rad(START_PTS-1),tr:Math.min(rad(START_PTS-1),holeMaxR)};deco=[];const dn=B.deco?(B.deco==='s'?320:200):0;for(let k=0;k<dn;k++)deco.push({x:r()*WS,y:r()*WS,r:(B.deco==='w'||B.deco==='d')?20+r()*30:B.deco==='s'?1.5+r()*3.5:3+r()*4,a:.3+r()*.7});
   // Cảnh nền theo chủ đề: các sinh vật/địa hình lớn tạo chiều sâu cho từng map.
   sceneMarks=[];
   if(B.scene){
@@ -792,7 +829,7 @@ function play(n){
   lvl=n;gen(n);score=START_PTS;initMove();initBots();eaten=0;fx=[];won=false;js=null;combo=0;
   cam={x:hole.x,y:hole.y};gPat=mkPat(B.g||theme[0]);lPat=mkPat(B.lane||theme[1]);spk=[];
   $('menu').classList.remove('on');$('game').classList.add('on');$('win').classList.remove('on','w','l');$('cf').innerHTML='';
-  resize();sc=Math.min(CW,CH)/(260+hole.R*6);
+  resize();sc=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);
   $('lv').textContent=B.ic+' Màn '+n;$('fill').style.width='0';
   const mh={maze:'🧱 Mê cung: luồn lách qua các vách đá để săn mồi!',ice:'🧊 Sân băng: mặt băng trơn trượt có quán tính, căn góc chuẩn!',island:'🏝️ Quần đảo: ăn lớn ở đảo nhà rồi qua cầu chinh phục các đảo!',belt:'⚙️ Nhà máy: tận dụng luồng băng chuyền để gom vật thể!',night:'🌙 Đêm tối: vùng sáng mở rộng dần khi hố đen lớn lên!'};if(B.scene==='ocean')mh.ocean='🌊 Đại Dương & Thủy Quái: hải lưu đẩy trôi nhẹ, khám phá xác tàu và quái vật biển sâu!';if(B.scene==='dino')mh.dino='🦖 Công Viên Khủng Long: né mưa thiên thạch, săn đá quý giữa rừng dương xỉ và núi lửa!';if(B.scene==='volcano')mh.volcano='🌋 Thế Giới Núi Lửa: khám phá miệng núi lửa, dòng dung nham và đá obsidian!';if(B.scene==='haunted')mh.haunted='🏰 Lâu Đài Ma Ám: tìm đường giữa bóng ma, dơi đêm và bí mật cổ xưa!';if(B.scene==='candy')mh.candy='🍭 Vương Quốc Kẹo Ngọt: thế giới pastel với kẹo mút, bánh ngọt và thạch dẻo!';if(B.scene==='egypt')mh.egypt='𓂀 Ai Cập Cổ Đại: khám phá kim tự tháp, tượng Nhân Sư và cổ vật thất lạc!';if(B.scene==='arctic')mh.arctic='❄️ Bắc Cực: băng trơn, tuyết rơi và cực quang phương Bắc!';if(B.scene==='cyberpunk')mh.cyberpunk='🌃 Thành Phố Cyberpunk: ánh đèn neon, drone và những tòa tháp tương lai!';if(B.scene==='dragon')mh.dragon='🐉 Vương Quốc Rồng: khám phá hang kho báu, trứng rồng và những sinh vật phun lửa!';if(B.scene==='mushroom')mh.mushroom='🍄 Rừng Nấm Kỳ Bí: nấm phát sáng, đom đóm và những ngôi nhà tí hon!';if(B.scene==='atlantis')mh.atlantis='🔱 Thành Phố Atlantis: cung điện chìm, nàng tiên cá, ngọc trai và đinh ba!';if(B.scene==='skyisland')mh.skyisland='☁️ Đảo Bay Trên Không: đảo lơ lửng, cá voi trời, cầu vồng và khinh khí cầu!';if(B.scene==='greek')mh.greek='⚡ Thần Thoại Hy Lạp: Pegasus, đền thần, vòng nguyệt quế và sấm sét!';if(B.scene==='samurai')mh.samurai='⛩️ Nhật Bản Samurai: cổng Torii, hoa anh đào, kiếm Katana và tháp chùa!';if(B.scene==='iceage')mh.iceage='🦣 Kỷ Băng Hà: voi ma mút, hổ răng kiếm, hang băng và hóa thạch!';if(B.scene==='space')mh.space='🛸 Trạm Không Gian: phi hành gia, vệ tinh, robot thám hiểm và hành tinh xa!';
   showHint((B.scene?mh[B.scene]:mh[B.mech])||(B.ic+' '+B.n+': chạm giữ để di chuyển. Skin: '+SK[skinI][0]+(skinSel>=0?' (cố định)':' (ngẫu nhiên)')),3800);
@@ -816,7 +853,7 @@ cv.addEventListener('pointermove',e=>{if(js&&js.id===e.pointerId){js.x=e.clientX
 const up=e=>{if(js&&js.id===e.pointerId)js=null};
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 
-function initMove(){for(const o of objs)if(o.ms){let a=Math.random()*6.283;
+function initMove(LL){for(const o of (LL||objs))if(o.ms){let a=Math.random()*6.283;
   if(o.ln)a=o.w>o.h?(Math.random()<.5?0:Math.PI):(Math.random()<.5?1.5708:-1.5708);
   o.vx=Math.cos(a)*o.ms;o.vy=Math.sin(a)*o.ms}}
 const OBJ_MOVE=.2,OBJ_MOVE1=.1,OBJ_FLEE=1.4;
@@ -836,7 +873,7 @@ function moveObj(o,dt){
   if(B.mech==='island')resolveLand(o);
 }
 function newBot(far,fixedP){
-  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=fixedP!=null?fixedP:Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=rad(P-1);
+  const mx=Math.max(22,Math.min(rad(totalPts*.7),30+Math.min(lvl,300)*1.2)),R0=14+Math.pow(Math.random(),1.4)*(mx-14),P=fixedP!=null?fixedP:Math.max(1,Math.round(Math.pow((R0-16)/5,2))+1),R=Math.min(rad(P-1),botMaxR);
   let x,y,t=0;
   do{
     if(B.mech==='island'&&islands.length){
@@ -851,7 +888,7 @@ function newBot(far,fixedP){
   return b}
 function initBots(){
   botT=0;bots=[];
-  for(const p of[2,3,1])bots.push(newBot(450,p));
+  for(const p of[1,1,2])bots.push(newBot(450,p));
   botsEaten=0;botsTotal=bots.length;botHint=false;spawnT=0;dead=false;grace=2.5;
 }
 function confetti(){const c=$('cf'),n=cfg.fps>60?60:(cfg.q<1.2?14:36),cs=['#ff4d5e','#ffd166','#4dff9a','#4cc9f0','#b79bff','#ff8ad8'];let h='';
@@ -879,13 +916,32 @@ function botEat(b){
     if(Math.abs(o.x-b.x)>b.R||Math.abs(o.y-b.y)>b.R||Math.hypot(o.x-b.x,o.y-b.y)>=b.R)continue;
     if(!canSpare(o)){o.bk=TT+2;continue}
     const er=BOT_EAT*botScale(b);
-    o.f=0;o.tg=b;o.fr=er;b.cd=1/(3.5*er);b.P+=o.pts;b.tr=rad(b.P-1);eaten++;setProg();return}
+    o.f=0;o.tg=b;o.fr=er;b.cd=1/(3.5*er);b.P+=o.pts;b.tr=Math.min(rad(b.P-1),botMaxR);eaten++;setProg();return}
 }
-const SPAWN_EVERY=20,SPAWN_N=5,BOT_MAX=16;
+const SPAWN_EVERY=20,SPAWN_N=2,BOT_MAX=16;
+function aliveBots(){let n=0;for(const b of bots)if(b.f<0)n++;return n}
+function aliveObjs(){let n=0;for(const o of objs)if(o.f<1)n++;return n}
+function refreshCaps(){let m=maxMapObjectPts;for(const o of objs)if(o.f<1&&o.pts>m)m=o.pts;
+  if(m>maxMapObjectPts){maxMapObjectPts=m;botMaxR=rad(m-1);holeMaxR=rad(Math.ceil(m*1.3)-1)}}
+/* còn <15 vật thể thì sinh lại, luôn giữ tổng vật thể + hố đen <= 100; quá 2 phút thì ngừng */
+function respawnObjs(){
+  if(won||dead||botT>MAX_TIME)return;
+  let alive=0,occ=0;for(const o of objs){if(o.f<0)alive++;if(o.f<1)occ++}
+  if(alive>=RESPAWN_BELOW)return;
+  const n=MAX_ENT-1-aliveBots()-occ;if(n<=0)return;
+  const PL=genPts(n,Math.random).sort((x,y)=>y-x),add=[],all=objs.filter(o=>o.f<1);
+  for(const p0 of PL){let p=p0,o=null;
+    for(let a=0;a<4&&!o;a++){o=placeTry(p,Math.random,all,hole.x,hole.y,hole.R+60,30,true);if(!o)p=Math.max(1,Math.round(p*.5))}
+    if(o){all.push(o);add.push(o)}}
+  if(!add.length)return;
+  for(const o of add)if(o.big)addClear(o);
+  initMove(add);objs=all.concat(add);objs.sort((x,y)=>x.y-y.y);
+  total+=add.length;for(const o of add)totalPts+=o.pts;
+  refreshCaps();setProg();showHint('✨ Vật thể mới xuất hiện trên map!',2000)}
 function spawnBots(){
-  const n=Math.min(SPAWN_N,BOT_MAX-bots.length);if(n<=0)return;
+  const room=MAX_ENT-1-aliveObjs()-aliveBots(),n=Math.min(SPAWN_N,BOT_MAX-bots.length,room);if(n<=0)return 0;
   for(let i=0;i<n;i++){const ratio=botT>10?(.05+Math.random()*.25):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
-  botsTotal+=n;setProg();showHint('⚠ '+n+' hố đen đối thủ mới xuất hiện!',2500)}
+  botsTotal+=n;setProg();showHint('⚠ '+n+' hố đen đối thủ mới xuất hiện!',2500);return n}
 function nearPrey(b){if(botCap(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
 function botEatBot(b){
   if(b.cd>0||botCap(b))return;const need=(b.fd&&b.fd.f<0)?.4:.8;
@@ -894,11 +950,11 @@ function botEatBot(b){
     if(Math.hypot(c.x-b.x,c.y-b.y)>=b.R*need)continue;
     const er=BOT_EAT*botScale(b);
     c.f=0;c.eb=b;for(const o of objs)if(o.tg===c)o.tg=b;
-    b.cd=1/(3.5*er);b.P+=g;b.tr=rad(b.P-1);return}
+    b.cd=1/(3.5*er);b.P+=g;b.tr=Math.min(rad(b.P-1),botMaxR);return}
 }
 function updBots(dt){
   if(grace>0)grace-=dt;botT+=dt;
-  if(!dead&&!won&&eaten<total){spawnT+=dt;if(spawnT>=SPAWN_EVERY){spawnT-=SPAWN_EVERY;spawnBots()}}
+  if(!dead&&!won&&eaten<total&&botT<=MAX_TIME){spawnT+=dt;if(spawnT>=SPAWN_EVERY&&spawnBots())spawnT-=SPAWN_EVERY}
   for(const b of bots){
     if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
     if(b.sp>0){b.sp-=dt;continue}
@@ -918,7 +974,7 @@ function updBots(dt){
     if(!won&&!dead)botEatBot(b);
     if(dead)continue;
     if(score>b.P&&l<Math.max(hole.R,hole.tr)){b.f=0;for(const o of objs)if(o.tg===b)o.tg=null;const p=b.P;score+=p;
-      hole.tr=rad(score-1);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
+      hole.tr=Math.min(rad(score-1),holeMaxR);sfx(10);fx.push({x:b.x,y:b.y,t:0,s:'+'+p})}
     else if(b.P>score&&l<b.R&&grace<=0)lose()}
   if(bots.some(b=>b.gone)){const n0=bots.length;bots=bots.filter(b=>!b.gone);botsEaten+=n0-bots.length;setProg()}
 }
@@ -955,15 +1011,16 @@ function update(dt){
     }}
     if(o.pts>=score)continue;
     if(Math.abs(o.x-hole.x)>lim||Math.abs(o.y-hole.y)>lim)continue;
-    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=rad(score-1);combo=Math.min(combo+1,12);sfx(combo);
+    if(Math.hypot(o.x-hole.x,o.y-hole.y)<R){o.f=0;eaten++;hole.pulse=1;if(cfg.sp&&spk.length<cfg.spc)for(let k=0;k<cfg.sp;k++){const a=Math.random()*6.283,v=70+Math.random()*90;spk.push({x:o.x,y:o.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0})}score+=o.pts;hole.tr=Math.min(rad(score-1),holeMaxR);combo=Math.min(combo+1,12);sfx(combo);
       fx.push({x:o.x,y:o.y,t:0,s:'+'+o.pts});setProg()}}
   stuckT+=dt;if(stuckT>1){stuckT=0;objs=objs.filter(o=>o.f<1);if(!won){let mn=1e9,anim=false;for(const o of objs){if(o.f>=1)continue;if(o.f>=0){anim=true;break}if(o.pts<mn)mn=o.pts}
-    if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=rad(score-1);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
+    if(!anim&&mn<1e9&&mn>=score){const g=mn+1-score;score=mn+1;hole.tr=Math.min(rad(score-1),holeMaxR);fx.push({x:hole.x,y:hole.y,t:0,s:'+'+g})}}}
   if(!won)updBots(dt);
+  respawnObjs();
   for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<.8);
   if(!fx.length&&!js)combo=Math.max(0,combo-dt*3);
   cam.x+=(hole.x-cam.x)*Math.min(1,dt*6);cam.y+=(hole.y-cam.y)*Math.min(1,dt*6);
-  const ts=Math.min(CW,CH)/(260+hole.R*6);sc+=(ts-sc)*Math.min(1,dt*3);
+  const ts=Math.min(CW,CH)/(260+Math.min(hole.R,holeMaxR)*6);sc+=(ts-sc)*Math.min(1,dt*3);
   if(!won&&eaten>=total&&!objs.some(o=>o.f>=0&&o.f<1)){
     if(!canBeatBots())lose('Thua rồi!','Bạn đã ăn hết vật thể nhưng vẫn còn hố đen đối thủ lớn hơn hoặc bằng điểm, không thể qua màn.');
     else if(!bots.length){won=true;win()}
@@ -2693,6 +2750,8 @@ function draw(){
       for(let k=kx0;k<=kx1;k++){ctx.moveTo(k*G,da);ctx.lineTo(k*G,yb)}
       for(let k=ky0;k<=ky1;k++){ctx.moveTo(dxa,k*G);ctx.lineTo(xb,k*G)}
       ctx.stroke();ctx.setLineDash([])}}
+  if(clears.length){ctx.fillStyle=gPat;for(const q of clears){if(q.x1<cam.x-vx||q.x0>cam.x+vx||q.y1<cam.y-vy||q.y0>cam.y+vy)continue;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(q.x0,q.y0,q.x1-q.x0,q.y1-q.y0,34);else ctx.rect(q.x0,q.y0,q.x1-q.x0,q.y1-q.y0);ctx.fill()}}
   ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=26;ctx.strokeRect(0,0,WS,WS);ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=5;ctx.strokeRect(0,0,WS,WS);
   const vw=CW/sc/2+90,vh=CH/sc/2+90,vis=o=>Math.abs(o.x-cam.x)<vw+o.w&&Math.abs(o.y-cam.y)<vh+o.h+o.hz;
   for(const o of objs)if(o.f>=0&&o.f<1&&vis(o))drawObj(o,1-o.f);
@@ -2761,7 +2820,22 @@ function applyGfx(m,auto){if(m==='auto'){auto=true;m=detectGfx()}gAuto=!!auto;gm
 function drawGl(){$('gl').innerHTML='';{const b=document.createElement('button');b.className='go'+(gAuto?' on':'');b.innerHTML='<b>✨ Tự động (khuyên dùng)</b><span>Nhận diện thiết bị và chọn độ nét phù hợp, tự hạ khi máy chậm. Đang dùng: '+GN[gm][0]+'</span>';tap(b,()=>{applyGfx('auto');drawGl()});$('gl').appendChild(b)}
   for(const k of['ultra','normal','low']){const b=document.createElement('button');b.className='go'+(!gAuto&&k===gm?' on':'');b.innerHTML='<b>'+GN[k][0]+'</b><span>'+GN[k][1]+'</span>';tap(b,()=>{applyGfx(k);drawGl()});$('gl').appendChild(b)}}
 let wasRun=false;
-function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}drawGl();$('set').classList.add('on')}
+async function showVer(){
+  const el=$('vers');let c='';
+  try{if(window.caches){const k=await caches.keys();c=(k.filter(x=>/^bh-v/.test(x))[0])||''}}catch(e){}
+  const want='bh-'+APP_VER;
+  if(!c){el.innerHTML='Game: <b>'+want+'</b> · Cache: <b>chưa có</b> (chưa cài offline)';el.style.color=''}
+  else if(c===want){el.innerHTML='Game: <b>'+want+'</b> · Cache: <b>'+c+'</b> ✅ Đã là bản mới nhất';el.style.color='#7dffb0'}
+  else{el.innerHTML='Game: <b>'+want+'</b> · Cache: <b>'+c+'</b> ⚠ Chưa khớp, hãy bấm cập nhật';el.style.color='#ffd166'}}
+async function forceUpdate(){
+  const el=$('vers');el.textContent='Đang cập nhật…';
+  try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();for(const r of rs)await r.unregister()}}catch(e){}
+  try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}}catch(e){}
+  try{sessionStorage.removeItem('bh_upd')}catch(e){}
+  location.replace(location.pathname+'?u='+Date.now())}
+function setTab(t){document.querySelectorAll('#stabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('#set .sp').forEach(p=>p.classList.toggle('on',p.id==='sp-'+t))}
+document.querySelectorAll('#stabs button').forEach(b=>tap(b,()=>setTab(b.dataset.t),true));
+function openSet(){wasRun=running;if(running){running=false;cancelAnimationFrame(raf)}setTab('g');drawGl();showVer();$('vnum').textContent='bh-'+APP_VER;$('set').classList.add('on')}
 function closeSet(){$('set').classList.remove('on');if(wasRun&&$('game').classList.contains('on'))startLoop();wasRun=false}
 
 /* ---------- giao diện quản lý 20 skin hố đen ---------- */
@@ -2819,7 +2893,7 @@ tap($('sb'),openSkinMgr);
 tap($('gsb'),openSkinMgr);
 tap($('psk'),openSkinMgr);
 tap($('skx'),closeSkinMgr);
-tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
+tap($('verb'),forceUpdate);tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
 /* ---------- sao lưu & khôi phục tiến độ (mã 6 ký tự) ---------- */
 (function(){
   /* 30 bit = 14 (số màn) + 1 (hiện điểm) + 2 (đồ hoạ) + 5 (skin) + 8 (kiểm tra lỗi) → 6 ký tự base32 */
@@ -2866,20 +2940,24 @@ tap($('st'),openSet);tap($('gs'),openSet);tap($('sx'),closeSet);
     const c=encode();box.value=c;
     copy(c).then(ok=>say(ok?'✅ Đã sao chép mã. Hãy ghi lại hoặc dán vào Ghi chú!':'Hãy ghi lại mã này để dùng khi khôi phục.',ok?'ok':''));
   });
+  let pend=null,pendT=0;
+  const resetR=()=>{pend=null;clearTimeout(pendT);$('bkr').firstChild.textContent='📥 Khôi phục'};
   tap($('bkr'),async()=>{
+    if(pend){const d=pend;resetR();
+      try{localStorage.setItem('bh_done',d.d);localStorage.setItem('bh_lb',d.l);localStorage.setItem('bh_skin',d.s<0?'':d.s);
+        if(d.g)localStorage.setItem('bh_gfx',d.g);else localStorage.removeItem('bh_gfx')}
+      catch(e){say('❌ Không ghi được dữ liệu trên thiết bị này.','err');return}
+      say('✅ Khôi phục thành công! Đang tải lại...','ok');setTimeout(()=>location.reload(),700);return}
     let t=box.value.trim();
     if(!t&&navigator.clipboard&&navigator.clipboard.readText){try{t=(await navigator.clipboard.readText()).trim();box.value=t}catch(e){}}
     if(!t){say('Hãy nhập mã sao lưu vào ô phía trên rồi bấm lại.','err');return}
     let d;try{d=/BH1-/i.test(t)?legacy(t):decode(t)}catch(e){say('❌ Mã không hợp lệ. Hãy kiểm tra lại từng ký tự.','err');return}
     const rs=d.s<0?'ngẫu nhiên':'skin '+(d.s+1)+' ('+SK[d.s][0]+')';
-    if(!confirm('Khôi phục: đã qua '+d.d+' màn, '+rs+'.\nTiến độ hiện tại ('+done+' màn) sẽ bị thay thế. Tiếp tục?'))return;
-    try{localStorage.setItem('bh_done',d.d);localStorage.setItem('bh_lb',d.l);localStorage.setItem('bh_skin',d.s<0?'':d.s);
-      if(d.g)localStorage.setItem('bh_gfx',d.g);else localStorage.removeItem('bh_gfx')}
-    catch(e){say('❌ Không ghi được dữ liệu trên thiết bị này.','err');return}
-    say('✅ Khôi phục thành công! Đang tải lại...','ok');setTimeout(()=>location.reload(),700);
+    pend=d;say('Mã hợp lệ: đã qua '+d.d+' màn, '+rs+'. Tiến độ hiện tại ('+done+' màn) sẽ bị thay thế. Bấm "Xác nhận" để tiếp tục.','');
+    $('bkr').firstChild.textContent='✔ Xác nhận';clearTimeout(pendT);pendT=setTimeout(()=>{resetR();say('')},10000);
   });
-  box.addEventListener('input',()=>say(''));
-  $('sx').addEventListener('click',()=>say(''));
+  box.addEventListener('input',()=>{say('');if(pend)resetR()});
+  $('sx').addEventListener('click',()=>{say('');if(pend)resetR()});
 })();
 
 

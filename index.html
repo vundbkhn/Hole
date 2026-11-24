@@ -201,7 +201,7 @@ body[data-gfx=low] #win.w #wi{filter:none}
 <div class="mfoot"><button class="btn" id="sx">Đóng</button></div></div></div>
 <script type="text/plain" id="main">
 const $=id=>document.getElementById(id);
-const MAXL=10000,START_PTS=2,MAX_ENT=150,MAX_TIME=120,RESPAWN_BELOW=15,APP_VER='v30';
+const MAXL=10000,START_PTS=2,MAX_ENT=150,MAX_TIME=120,RESPAWN_BELOW=15,APP_VER='v31';
 let done=0,musicOn=true,showLb=true;
 try{done=+localStorage.getItem('bh_done')||0;showLb=localStorage.getItem('bh_lb')!=='0';musicOn=localStorage.getItem('bh_music')!=='0'}catch(e){}
 const save=()=>{try{localStorage.setItem('bh_done',done);localStorage.setItem('bh_lb',showLb?1:0);localStorage.setItem('bh_music',musicOn?1:0)}catch(e){}};
@@ -708,13 +708,13 @@ function boomLoss(cur){const mn=minObjPts(),need=mn>=1e9?START_PTS:Math.max(Math
 function pickItem(it){
   it.f=0;sfx(8);
   if(it.type==='rocket'){boostT=5;showHint('🚀 Tăng tốc x3 trong 5 giây!',2200)}
-  else if(it.type==='snow'){for(const b of bots)if(b.f<0)b.slowT=8;showHint('❄️ Hố đen đối thủ bị làm chậm 8 giây!',2200)}
+  else if(it.type==='snow'){slowPlT=8;showHint('❄️ Bông tuyết: bạn bị chậm 8 giây!',2200)}
   else if(it.type==='shield'){shieldT=8;showHint('🛡️ Vòng bảo vệ: không bị nuốt trong 8 giây!',2200)}
   else{const loss=boomLoss(score);score-=loss;hole.tr=Math.min(rad(score-1),holeMaxR);hole.pulse=1;
     if(loss>0)fx.push({x:hole.x,y:hole.y,t:0,s:'-'+loss});showHint('💣 Boom! Bạn bị mất một phần điểm',2400)}}
 function botPick(it,b){
   it.f=0;
-  if(it.type==='snow'){slowPlT=8;for(const o of bots)if(o!==b&&o.f<0)o.slowT=8;showHint('❄️ Một hố đen đối thủ nhặt bông tuyết: bạn bị chậm 8 giây!',2400)}
+  if(it.type==='snow'){b.slowT=8}
   else{const loss=boomLoss(b.P);b.P-=loss;b.tr=Math.min(rad(b.P-1),botMaxR);fx.push({x:b.x,y:b.y,t:0,s:'💣'})}}
 /* vật to: dọn đường dưới chân vật (vẽ nền đè lên đường) và gỡ vách mê cung chạm vật */
 function addClear(o){
@@ -956,7 +956,6 @@ function refreshCaps(){let m=maxMapObjectPts;for(const o of objs)if(o.f<1&&o.pts
 function respawnObjs(){
   if(won||dead||botT>MAX_TIME)return;
   let alive=0,occ=0;for(const o of objs){if(o.f<0)alive++;if(o.f<1)occ++}
-  if(alive<RESPAWN_BELOW+10&&!warnObj){warnObj=true;showHint('⚠ Sắp sinh thêm vật thể và vật phẩm mới!',2600)}
   if(alive>=RESPAWN_BELOW)return;
   const room=MAX_ENT-1-aliveBots()-occ-items.length;if(room<=0)return;
   const k=Math.floor(room*.01)+(Math.random()<(room*.01)%1?1:0),n=room-k;
@@ -969,11 +968,11 @@ function respawnObjs(){
   initMove(add);objs=all.concat(add);objs.sort((x,y)=>x.y-y.y);
   total+=add.length;for(const o of add)totalPts+=o.pts;
   let ni=0;for(let j=0;j<k;j++){const it=placeItem(objs,Math.random,hole.x,hole.y,hole.R+120);if(it){items.push(it);ni++}}
-  warnObj=false;refreshCaps();setProg();showHint('✨ Đã sinh thêm '+add.length+' vật thể'+(ni?' và '+ni+' vật phẩm':'')+'!',2400)}
+  refreshCaps();setProg()}
 function spawnBots(){
   const room=MAX_ENT-1-aliveObjs()-aliveBots()-items.length,n=Math.min(SPAWN_N,BOT_MAX-bots.length,room);if(n<=0)return 0;
   for(let i=0;i<n;i++){const ratio=botT>10?(.05+Math.random()*.25):(.05+Math.random()*.05),P=Math.max(1,Math.round(score*ratio)),b=newBot(450,P);bots.push(b)}
-  botsTotal+=n;setProg();warnBot=false;showHint('⚠ '+n+' hố đen đối thủ mới xuất hiện!',2800);return n}
+  botsTotal+=n;setProg();return n}
 function nearPrey(b){if(botCap(b))return null;let best=null,bd=700;for(const c of bots){if(c===b||c.f>=0||c.sp>0||c.P>=b.P||!canBotGrowTo(b,b.P+c.P))continue;const d=Math.hypot(c.x-b.x,c.y-b.y);if(d<bd){bd=d;best=c}}return best}
 function botEatBot(b){
   if(b.cd>0||botCap(b)||b.pref!=='b')return;const need=(b.fd&&b.fd.f<0)?.4:.8;
@@ -986,9 +985,7 @@ function botEatBot(b){
 }
 function updBots(dt){
   if(grace>0)grace-=dt;botT+=dt;
-  if(!p2Hint&&botT>MAX_TIME&&!dead&&!won){p2Hint=true;showHint('⏱ Hết 2 phút! Hố đen đối thủ bắt đầu săn bạn, không sinh thêm gì nữa.',4500)}
   if(!dead&&!won&&eaten<total&&botT<=MAX_TIME){spawnT+=dt;
-    if(!warnBot&&spawnT>=SPAWN_EVERY-3&&BOT_MAX-bots.length>0){warnBot=true;showHint('⚠ Hố đen đối thủ sắp xuất hiện!',2800)}
     if(spawnT>=SPAWN_EVERY&&spawnBots())spawnT-=SPAWN_EVERY}
   for(const b of bots){
     if(b.f>=0){const T=b.eb||hole;b.f+=dt*3;b.x+=(T.x-b.x)*Math.min(1,dt*8);b.y+=(T.y-b.y)*Math.min(1,dt*8);if(b.f>=1)b.gone=true;continue}
@@ -1001,8 +998,7 @@ function updBots(dt){
       /* 2 phút đầu: đuổi theo nhưng luôn giữ khoảng cách để người chơi chạy thoát */
       const keep=hole.R+b.R+150,f=Math.max(-1,Math.min(1,(l-keep)/90));mx=dx/l*f;my=dy/l*f}
     else if(b.P>score&&botT>MAX_TIME&&(l<b.R*1.8+40||(!fd&&l<300+b.R*3))){mx=dx/l;my=dy/l}
-    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const pO=botT<=MAX_TIME?.9:.5;let f=null,q=null;if(Math.random()<pO){f=nearFood(b);if(!f)q=nearPrey(b)}else{q=nearPrey(b);if(!q)f=nearFood(b)}b.pref=q?'b':'o';if(f){b.tx=f.x;b.ty=f.y}else if(q){b.tx=q.x;b.ty=q.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}
-      if(Math.random()<.3){const sn=items.find(i=>i.f<0&&i.type==='snow'&&Math.hypot(i.x-b.x,i.y-b.y)<700);if(sn){b.tx=sn.x;b.ty=sn.y}}}
+    else{b.tm-=dt;if(b.tm<=0||Math.hypot(b.tx-b.x,b.ty-b.y)<30){b.tm=1+Math.random()*2;const pO=botT<=MAX_TIME?.9:.5;let f=null,q=null;if(Math.random()<pO){f=nearFood(b);if(!f)q=nearPrey(b)}else{q=nearPrey(b);if(!q)f=nearFood(b)}b.pref=q?'b':'o';if(f){b.tx=f.x;b.ty=f.y}else if(q){b.tx=q.x;b.ty=q.y}else{b.tx=80+Math.random()*(WS-160);b.ty=80+Math.random()*(WS-160)}}
       const tx=b.tx-b.x,ty=b.ty-b.y,tl=Math.hypot(tx,ty)||1;mx=tx/tl;my=ty/tl}
     const k=Math.min(1,dt*(B.mech==='ice'?1.5:4));b.vx+=(mx*spd-b.vx)*k;b.vy+=(my*spd-b.vy)*k;
     let bvx=b.vx,bvy=b.vy;if(B.mech==='belt'){const bl=beltVel(b.x,b.y);if(bl){bvx+=bl.vx;bvy+=bl.vy}}
@@ -3022,7 +3018,27 @@ window.addEventListener('focus',wakeAudio);
 
 buildMap();
 {const bt=$('boot');if(bt){bt.classList.add('x');setTimeout(()=>bt.remove(),350)}}
-if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.addEventListener('message',e=>{if(e.data==='upd'&&$('menu').classList.contains('on')&&!sessionStorage.getItem('bh_upd')){try{sessionStorage.setItem('bh_upd','1')}catch(x){}location.reload()}});navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{off=true;$('prog').textContent+=' · chơi offline được'}).catch(()=>{})}
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.addEventListener('message',e=>{if(e.data==='upd'&&$('menu').classList.contains('on')&&!sessionStorage.getItem('bh_upd')){try{sessionStorage.setItem('bh_upd','1')}catch(x){}location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>{swReg=r;return navigator.serviceWorker.ready}).then(()=>{off=true;$('prog').textContent+=' · chơi offline được'}).catch(()=>{})}
+/* Tự động kiểm tra & cập nhật: lúc mở game, khi quay lại app và mỗi 5 phút. Không bao giờ tải lại giữa ván. */
+let swReg=null,updTo=null;
+function inMenu(){return $('menu').classList.contains('on')&&!$('set').classList.contains('on')}
+function applyAutoUpdate(v){
+  const d=document.createElement('div');d.textContent='🔄 Có phiên bản mới ('+v+'), đang cập nhật…';
+  d.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99999;background:#7746f5;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+  document.body.appendChild(d);setTimeout(forceUpdate,700)}
+async function autoCheck(){
+  if(!location.protocol.startsWith('http')||navigator.onLine===false)return;
+  try{
+    if(swReg)swReg.update().catch(()=>{});
+    const r=await fetch('index.html?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const m=(await r.text()).match(/APP_VER='(v\d+)'/);
+    if(m&&m[1]!==APP_VER)updTo=m[1];
+    if(updTo&&inMenu()&&sessionStorage.getItem('bh_try')!==updTo){try{sessionStorage.setItem('bh_try',updTo)}catch(x){}applyAutoUpdate(updTo)}
+  }catch(e){}}
+setTimeout(autoCheck,1500);
+setInterval(autoCheck,300000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoCheck()});
+setInterval(()=>{if(updTo&&inMenu()&&sessionStorage.getItem('bh_try')!==updTo)autoCheck()},15000);
 </script>
 <script>
 (function(){var b=document.getElementById('boot'),go=function(){try{var m=document.getElementById('main'),e=document.createElement('script');e.textContent=m.textContent;document.body.appendChild(e)}catch(x){}};
